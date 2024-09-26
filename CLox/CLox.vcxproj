@@ -21,16 +21,20 @@
   <ItemGroup>
     <ClInclude Include="include\chunk.h" />
     <ClInclude Include="include\common.h" />
+    <ClInclude Include="include\compiler.h" />
     <ClInclude Include="include\debug.h" />
     <ClInclude Include="include\memory.h" />
+    <ClInclude Include="include\scanner.h" />
     <ClInclude Include="include\value.h" />
     <ClInclude Include="include\vm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\chunk.c" />
+    <ClCompile Include="src\compiler.c" />
     <ClCompile Include="src\debug.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\memory.c" />
+    <ClCompile Include="src\scanner.c" />
     <ClCompile Include="src\value.c" />
     <ClCompile Include="src\vm.c" />
   </ItemGroup>

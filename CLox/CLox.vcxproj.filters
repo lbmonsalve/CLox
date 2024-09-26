@@ -33,6 +33,12 @@
     <ClInclude Include="include\vm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\chunk.c">
@@ -51,6 +57,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\vm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scanner.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
