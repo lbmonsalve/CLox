@@ -49,6 +49,11 @@ static char peekNext() {
 	return scanner.current[1];
 }
 
+static char advance() {
+	scanner.current++;
+	return scanner.current[-1];
+}
+
 static void skipWhitespace() {
 	for (;;) {
 		char c = peek();
@@ -88,11 +93,6 @@ static Token string() {
 	// The closing quote.
 	advance();
 	return makeToken(TOKEN_STRING);
-}
-
-static char advance() {
-	scanner.current++;
-	return scanner.current[-1];
 }
 
 static bool isAlpha(char c) {
@@ -146,13 +146,13 @@ static TokenType identifierType() {
 	return TOKEN_IDENTIFIER;
 }
 
+static bool isDigit(char c) {
+	return c >= '0' && c <= '9';
+}
+
 static Token identifier() {
 	while (isAlpha(peek()) || isDigit(peek())) advance();
 	return makeToken(identifierType());
-}
-
-static bool isDigit(char c) {
-	return c >= '0' && c <= '9';
 }
 
 static Token number() {
