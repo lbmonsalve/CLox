@@ -24,6 +24,7 @@
     <ClInclude Include="include\compiler.h" />
     <ClInclude Include="include\debug.h" />
     <ClInclude Include="include\memory.h" />
+    <ClInclude Include="include\object.h" />
     <ClInclude Include="include\scanner.h" />
     <ClInclude Include="include\value.h" />
     <ClInclude Include="include\vm.h" />
@@ -34,6 +35,7 @@
     <ClCompile Include="src\debug.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\memory.c" />
+    <ClCompile Include="src\object.c" />
     <ClCompile Include="src\scanner.c" />
     <ClCompile Include="src\value.c" />
     <ClCompile Include="src\vm.c" />
