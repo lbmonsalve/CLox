@@ -26,6 +26,7 @@
     <ClInclude Include="include\memory.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\scanner.h" />
+    <ClInclude Include="include\table.h" />
     <ClInclude Include="include\value.h" />
     <ClInclude Include="include\vm.h" />
   </ItemGroup>
@@ -37,6 +38,7 @@
     <ClCompile Include="src\memory.c" />
     <ClCompile Include="src\object.c" />
     <ClCompile Include="src\scanner.c" />
+    <ClCompile Include="src\table.c" />
     <ClCompile Include="src\value.c" />
     <ClCompile Include="src\vm.c" />
   </ItemGroup>
