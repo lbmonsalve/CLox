@@ -6,7 +6,7 @@
 void disassembleChunk(Chunk* chunk, const char* name) {
     printf("== %s ==\n", name);
 
-    for (int offset = 0; offset < chunk->count;) {
+    for (int offset = 0; offset < chunk->count; ) {
         offset = disassembleInstruction(chunk, offset);
     }
 }
@@ -49,6 +49,18 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_FALSE:
         return simpleInstruction("OP_FALSE", offset);
 
+    case OP_POP:
+        return simpleInstruction("OP_POP", offset);
+
+    case OP_GET_GLOBAL:
+        return constantInstruction("OP_GET_GLOBAL", chunk, offset);
+
+    case OP_DEFINE_GLOBAL:
+        return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
+
+    case OP_SET_GLOBAL:
+        return constantInstruction("OP_SET_GLOBAL", chunk, offset);
+
     case OP_EQUAL:
         return simpleInstruction("OP_EQUAL", offset);
 
@@ -75,6 +87,9 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 
     case OP_NEGATE:
         return simpleInstruction("OP_NEGATE", offset);
+
+    case OP_PRINT:
+        return simpleInstruction("OP_PRINT", offset);
 
     case OP_RETURN:
         return simpleInstruction("OP_RETURN", offset);
