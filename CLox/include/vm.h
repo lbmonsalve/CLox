@@ -9,13 +9,13 @@
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
-typedef struct {
-	ObjFunction* function;
+typedef struct CallFrame {
+	ObjClosure* closure;
 	uint8_t* ip;
 	Value* slots;
 } CallFrame;
 
-typedef struct {
+typedef struct VM {
 	CallFrame frames[FRAMES_MAX];
 	int frameCount;
 
@@ -23,10 +23,12 @@ typedef struct {
 	Value* stackTop;
 	Table globals;
 	Table strings;
+	ObjUpvalue* openUpvalues;
+
 	Obj* objects;
 } VM;
 
-typedef enum {
+typedef enum InterpretResult {
 	INTERPRET_OK,
 	INTERPRET_COMPILE_ERROR,
 	INTERPRET_RUNTIME_ERROR
