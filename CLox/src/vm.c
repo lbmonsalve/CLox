@@ -51,9 +51,18 @@ static void defineNative(const char* name, NativeFn function);
 
 void initVM() {
     resetStack();
+    
     initTable(&vm.globals);
     initTable(&vm.strings);
+    
     vm.objects = NULL;
+
+    vm.bytesAllocated = 0;
+    vm.nextGC = 1024 * 1024;
+
+    vm.grayCount = 0;
+    vm.grayCapacity = 0;
+    vm.grayStack = NULL;
 
     defineNative("clock", clockNative);
 }
@@ -164,14 +173,18 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-    ObjString* b = AS_STRING(pop());
-    ObjString* a = AS_STRING(pop());
+    ObjString* b = AS_STRING(peek(0)); // pag. 517 Garbage Collection Bugs 26.6
+    ObjString* a = AS_STRING(peek(1)); // pag. 517
+
     int length = a->length + b->length;
     char* chars = ALLOCATE(char, length + 1);
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
     chars[length] = '\0';
     ObjString* result = takeString(chars, length);
+
+    pop(); // pag. 517
+    pop(); // pag. 517
     push(OBJ_VAL(result));
 }
 

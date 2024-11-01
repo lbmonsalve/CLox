@@ -90,3 +90,19 @@ int main(int argc, const char* argv[])
 //   4. Use the Error List window to view errors
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+
+/*
+
+fun fib(n) { if (n < 2) return n; return fib(n - 2) + fib(n - 1); } var start = clock(); print fib(35); print clock() - start;
+
+var x = "global"; fun outer() { var x = "outer"; fun inner() { print x; } inner(); } outer();
+
+fun outer() { var a = 1; var b = 2; fun middle() { var c = 3; var d = 4; fun inner() { print a + c + b + d; } } }
+
+fun outer() {var x = "before";fun inner() {x = "assigned";}inner();print x;}outer();
+
+fun outer() {var x = "outside";fun inner() {print x;}inner();}outer();
+
+var globalSet;var globalGet;fun main() {var a = "initial";fun set() { a = "updated"; }fun get() {print a; }globalSet = set;globalGet = get;}main();globalSet();globalGet();
+
+*/
