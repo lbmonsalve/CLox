@@ -105,4 +105,8 @@ fun outer() {var x = "outside";fun inner() {print x;}inner();}outer();
 
 var globalSet;var globalGet;fun main() {var a = "initial";fun set() { a = "updated"; }fun get() {print a; }globalSet = set;globalGet = get;}main();globalSet();globalGet();
 
+class Toast {}var toast = Toast();print toast.jam = "grape"; // Prints "grape".
+
+class Pair {}var pair = Pair();pair.first = 1;pair.second = 2;print pair.first + pair.second; // 3.
+
 */
