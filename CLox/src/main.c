@@ -132,4 +132,9 @@ maker.brew();
 class Oops {init() {fun f() {print "not a method";}this.field = f;}}
 var oops = Oops();
 oops.field();
+
+class Doughnut {cook() {print "Dunk in the fryer.";this.finish("sprinkles");}finish(ingredient) {print "Finish with " + ingredient;}}
+
+class Cruller < Doughnut {finish(ingredient) {super.finish("icing");}}
+
 */
