@@ -7,8 +7,7 @@
 #include "value.h"
 #include "vm.h"
 
-#define ALLOCATE_OBJ(type, objectType) \
-	(type*)allocateObject(sizeof(type), objectType)
+#define ALLOCATE_OBJ(type, objectType) (type*)allocateObject(sizeof(type), objectType)
 
 static Obj* allocateObject(size_t size, ObjType type) {
 	Obj* object = (Obj*)reallocate(NULL, 0, size);
@@ -22,6 +21,13 @@ static Obj* allocateObject(size_t size, ObjType type) {
 #endif
 
 	return object;
+}
+
+ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
+	ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+	bound->receiver = receiver;
+	bound->method = method;
+	return bound;
 }
 
 ObjFunction* newFunction() {
@@ -50,6 +56,7 @@ ObjNative* newNative(NativeFn function) {
 ObjClass* newClass(ObjString* name) {
 	ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
 	klass->name = name;
+	initTable(&klass->methods);
 	return klass;
 }
 
@@ -133,6 +140,9 @@ void printObject(Value value) {
 	switch (OBJ_TYPE(value)) {
 		case OBJ_CLASS:
 			printf("%s", AS_CLASS(value)->name->chars);
+			break;
+		case OBJ_BOUND_METHOD:
+			printFunction(AS_BOUND_METHOD(value)->method->function);
 			break;
 		case OBJ_CLOSURE:
 			printFunction(AS_CLOSURE(value)->function);

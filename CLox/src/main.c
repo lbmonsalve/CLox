@@ -109,4 +109,27 @@ class Toast {}var toast = Toast();print toast.jam = "grape"; // Prints "grape".
 
 class Pair {}var pair = Pair();pair.first = 1;pair.second = 2;print pair.first + pair.second; // 3.
 
+class Brunch {bacon() {}eggs() {}}
+
+class Scone {topping(first, second) {print "scone with " + first + " and " + second;}}
+var scone = Scone();
+scone.topping("berries", "cream");
+
+// err
+class Nested {method() {fun function() {print this;}function();}}
+Nested().method();
+// err
+
+print this; // At top level
+fun notMethod() {print this;}
+notMethod();
+
+class CoffeeMaker {init(coffee) {this.coffee = coffee;}brew() {print "Enjoy your cup of " + this.coffee;this.coffee = nil;}}
+var maker = CoffeeMaker("coffee and chicory");
+maker.brew();
+
+
+class Oops {init() {fun f() {print "not a method";}this.field = f;}}
+var oops = Oops();
+oops.field();
 */
