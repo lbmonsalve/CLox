@@ -5,12 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
-#include "chunk.h"
-#include "debug.h"
 #include "vm.h"
 
 static void repl() {
+    printf("clox 0.0.241102 (d0c5c90) type .help for more information\n");
+
     char line[1024];
     for (;;) {
         printf("> ");
@@ -18,6 +17,17 @@ static void repl() {
         if (!fgets(line, sizeof(line), stdin)) {
             printf("\n");
             break;
+        }
+
+        if (strcmp(".q\n", line) == 0) {
+            return;
+        } else if (strcmp(".help\n", line) == 0) {
+            printf("Lox language implementation in Xojo (https://github.com/lbmonsalve/CLox)\n\n");
+            printf("Commands:\n\n");
+            printf("  .help         this info\n");
+            printf("  .quit         quit (or .q)\n\n");
+            printf("LICENCE and COPYRIGHT on github site.\n\n");
+            continue;
         }
 
         interpret(line);
@@ -136,5 +146,7 @@ oops.field();
 class Doughnut {cook() {print "Dunk in the fryer.";this.finish("sprinkles");}finish(ingredient) {print "Finish with " + ingredient;}}
 
 class Cruller < Doughnut {finish(ingredient) {super.finish("icing");}}
+
+project/properties/Debugging/Command Arguments: ..\benchmarks\FasterHashTableProbing.lox
 
 */
