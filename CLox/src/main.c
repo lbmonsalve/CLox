@@ -22,7 +22,7 @@ static void repl() {
         if (strcmp(".q\n", line) == 0) {
             return;
         } else if (strcmp(".help\n", line) == 0) {
-            printf("Lox language implementation in Xojo (https://github.com/lbmonsalve/CLox)\n\n");
+            printf("Lox language implementation in C (https://github.com/lbmonsalve/CLox)\n\n");
             printf("Commands:\n\n");
             printf("  .help         this info\n");
             printf("  .quit         quit (or .q)\n\n");
@@ -147,6 +147,13 @@ class Doughnut {cook() {print "Dunk in the fryer.";this.finish("sprinkles");}fin
 
 class Cruller < Doughnut {finish(ingredient) {super.finish("icing");}}
 
-project/properties/Debugging/Command Arguments: ..\benchmarks\FasterHashTableProbing.lox
+
+
+project/properties/Debugging/Command Arguments: ..\test\benchmark\binary_trees.lox
+
+
+fun echo(n) {print n;return n;}
+print echo(echo(1) + echo(2)) + echo(echo(4) + echo(5));
+
 
 */
