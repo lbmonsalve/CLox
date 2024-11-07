@@ -8,23 +8,9 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
-//#include "membuf.h"
+#include "membufw.h"
 #include "memory.h"
 #include "vm.h"
-
-
-#define MAX_MEM_BUFFER 1024
-#define MAX_LINE_BUFFER 256
-
-// FILE* stream memory buffer.
-typedef struct {
-    char* buf;
-    FILE* fptr;
-} MemBuffer;
-
-void initMemBuffer(MemBuffer* mb);
-void freeMemBuffer(MemBuffer* mb);
-
 
 #define LOX_VERSION_STRING "0.0.241106"
 
@@ -225,15 +211,4 @@ int main(int argc, const char* argv[]) {
   }
 
   return 0;
-}
-
-void initMemBuffer(MemBuffer* mb) {
-    mb->buf = (char*)calloc(MAX_MEM_BUFFER, sizeof(char*));
-    mb->fptr = tmpfile();
-    setvbuf(mb->fptr, mb->buf, _IOFBF, MAX_MEM_BUFFER);
-}
-
-void freeMemBuffer(MemBuffer* mb) {
-    fclose(mb->fptr);
-    free(mb->buf);
 }

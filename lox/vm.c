@@ -13,7 +13,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
-//#include "membuf.h"
+#include "membufw.h"
 #include "memory.h"
 #include "obj_native.h"
 #include "object.h"
@@ -213,19 +213,18 @@ static bool roundNative(VM* vm, int argCount, Value* args) {
   return true;
 }
 
-//static bool strNative(VM* vm, int argCount, Value* args) {
-//  if (!checkArity(vm, 1, argCount)) {
-//    return false;
-//  }
-//  MemBuf out;
-//  initMemBuf(&out);
-//  printValue(out.fptr, args[0]);
-//  fflush(out.fptr);
-//  push(vm,
-//      OBJ_VAL(copyString(&vm->gc, &vm->strings, out.buf, out.size)));
-//  freeMemBuf(&out);
-//  return true;
-//}
+static bool strNative(VM* vm, int argCount, Value* args) {
+  if (!checkArity(vm, 1, argCount)) {
+    return false;
+  }
+  MemBuffer out;
+  initMemBuffer(&out);
+  printValue(out.fptr, args[0]);
+  push(vm,
+      OBJ_VAL(copyString(&vm->gc, &vm->strings, out.buf, (int)ftell(out.fptr))));
+  freeMemBuffer(&out);
+  return true;
+}
 
 static bool typeNative(VM* vm, int argCount, Value* args) {
   if (!checkArity(vm, 1, argCount)) {
@@ -599,7 +598,7 @@ void initVM(VM* vm, FILE* fout, FILE* ferr) {
   defineNative(vm, "exit", exitNative);
   defineNative(vm, "floor", floorNative);
   defineNative(vm, "round", roundNative);
-  //defineNative(vm, "str", strNative);
+  defineNative(vm, "str", strNative);
   defineNative(vm, "type", typeNative);
 }
 
