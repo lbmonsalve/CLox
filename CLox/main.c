@@ -13,44 +13,17 @@
 #include "vm.h"
 
 
-#ifdef WIN32
+#define MAX_MEM_BUFFER 1024
+#define MAX_LINE_BUFFER 256
 
-#include <windows.h>
-#include <share.h>
-#include <io.h>
-#include <fcntl.h>
-#include <sys/stat.h>
+// FILE* stream memory buffer.
+typedef struct {
+    char* buf;
+    FILE* fptr;
+} MemBuffer;
 
-FILE* fmemopen(void* buf, size_t len, const char* type)
-{
-    int fd;
-    FILE* fp;
-    char tp[MAX_PATH - 13];
-    char fn[MAX_PATH + 1];
-    int* pfd = &fd;
-    int retner = -1;
-    char tfname[] = "MemTF_";
-    if (!GetTempPathA(sizeof(tp), tp))
-        return NULL;
-    if (!GetTempFileNameA(tp, tfname, 0, fn))
-        return NULL;
-    retner = _sopen_s(pfd, fn, _O_CREAT | _O_SHORT_LIVED | _O_TEMPORARY | _O_RDWR | _O_BINARY | _O_NOINHERIT, _SH_DENYRW, _S_IREAD | _S_IWRITE);
-    if (retner != 0)
-        return NULL;
-    if (fd == -1)
-        return NULL;
-    fp = _fdopen(fd, "wb+");
-    if (!fp) {
-        _close(fd);
-        return NULL;
-    }
-    /*File descriptors passed into _fdopen are owned by the returned FILE * stream.If _fdopen is successful, do not call _close on the file descriptor.Calling fclose on the returned FILE * also closes the file descriptor.*/
-    fwrite(buf, len, 1, fp);
-    rewind(fp);
-    return fp;
-}
-
-#endif
+void initMemBuffer(MemBuffer* mb);
+void freeMemBuffer(MemBuffer* mb);
 
 
 #define LOX_VERSION_STRING "0.0.241106"
@@ -70,23 +43,9 @@ static void repl(int argc, const char* argv[]) {
   const char prefix[] = "print";
   const size_t inputStart = sizeof(prefix) - 1;
 
-  //MemBuf src;
-  //initMemBuf(&src);
-  //fputs(prefix, src.fptr);
-  //fflush(src.fptr);
-
-  char buf[1024] = "some";
-  FILE* fptr = fmemopen(buf, 1024, "wb");
-  //long size = ftell(fptr);
-  fputs(prefix, fptr);
-  fflush(fptr);
-
-  //size = ftell(fptr);
-  //fseek(fptr, 0, SEEK_SET);
-  //int readbytes = fread(buf, 1, size, fptr);
-  //printf("\nbuffer:%s\n", buf);
-  //printf("Readed_bytes:%d\n", readbytes);
-
+  MemBuffer src;
+  initMemBuffer(&src);
+  fputs(prefix, src.fptr);
 
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(100);
@@ -94,7 +53,7 @@ static void repl(int argc, const char* argv[]) {
   printf("clox %s (d0c5c90) type .help for more information\n", LOX_VERSION_STRING);
   
   for (;;) {
-    const char* prompt = ftell(fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";
+    const char* prompt = ftell(src.fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";
     char* line = linenoise(prompt);
 
     size_t len = strlen(line);
@@ -102,11 +61,10 @@ static void repl(int argc, const char* argv[]) {
         free(line);
         continue;
     } else if (len >= 1 && line[len - 1] == '\\') {
-        fprintf(fptr, "%.*s\n", (int)len - 1, line);
-        fflush(fptr);
+        fprintf(src.fptr, "%.*s\n", (int)len- 1, line);
     } else if (strcmp(".q", line) == 0) {
         freeVM(&vm);
-        fclose(fptr);
+        freeMemBuffer(&src);
         free(line);
         break;
     } else if (strcmp(".help", line) == 0) {
@@ -118,32 +76,22 @@ static void repl(int argc, const char* argv[]) {
         free(line);
         continue;
     } else {
-        fputs(line, fptr);
-        fputc('\n', fptr);
-        fflush(fptr);
+        fprintf(src.fptr, "%.*s\n", (int)len, line);
 
-        fseek(fptr, 0, SEEK_SET);
-        int readbytes = fread(buf, 1, 1024, fptr);
-        if (buf[inputStart] == '=') {
-            buf[inputStart] = ' ';
-            fseek(fptr, 0, SEEK_SET);
-            fputs(buf, fptr);
-            fputc(';', fptr);
-            fflush(fptr);
+        if (src.buf[inputStart] == '=') {
+            src.buf[inputStart] = ' ';
+            fputc(';', src.fptr);
 
-            fseek(fptr, 0, SEEK_SET);
-            readbytes = fread(buf, 1, 1024, fptr);
-            interpret(&vm, buf);
+            src.buf[ftell(src.fptr)] = '\0';
+            interpret(&vm, src.buf);
         } else {
-            fseek(fptr, inputStart, SEEK_SET);
-            readbytes = fread(buf, 1, 1024, fptr);
-            interpret(&vm, buf);
+            src.buf[ftell(src.fptr)] = '\0';
+            interpret(&vm, src.buf + inputStart);
         }
 
-        fclose(fptr);
-        fptr = fmemopen(buf, 1024, "wb");
-        fputs(prefix, fptr);
-        fflush(fptr);
+        freeMemBuffer(&src);
+        initMemBuffer(&src);
+        fputs(prefix, src.fptr);
     }
 
     linenoiseHistoryAdd(line);
@@ -277,4 +225,15 @@ int main(int argc, const char* argv[]) {
   }
 
   return 0;
+}
+
+void initMemBuffer(MemBuffer* mb) {
+    mb->buf = (char*)calloc(MAX_MEM_BUFFER, sizeof(char*));
+    mb->fptr = tmpfile();
+    setvbuf(mb->fptr, mb->buf, _IOFBF, MAX_MEM_BUFFER);
+}
+
+void freeMemBuffer(MemBuffer* mb) {
+    fclose(mb->fptr);
+    free(mb->buf);
 }
