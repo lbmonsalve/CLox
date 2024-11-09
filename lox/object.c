@@ -214,3 +214,90 @@ void printObject(FILE* fout, Value value) {
     case OBJ_UPVALUE: fprintf(fout, "upvalue"); break;
   }
 }
+
+static void printFunctionWriteFn(VM* vm, ObjFunction* function) {
+    if (function->name == NULL) {
+        vm->writeFn(vm, "<script>");
+        return;
+    }
+    size_t sz = snprintf(NULL, 0, "<fn %s>", function->name->chars);
+    char* buf = malloc(sz + 1);
+    snprintf(buf, sz + 1, "<fn %s>", function->name->chars);
+    vm->writeFn(vm, buf);
+    free(buf);
+}
+
+void printObjectWriteFn(VM* vm, Value value) {
+    switch (OBJ_TYPE(value)) {
+    case OBJ_BOUND_METHOD: {
+        printObjectWriteFn(vm, OBJ_VAL(AS_BOUND_METHOD(value)->method));
+        break;
+    }
+    case OBJ_CLASS: {
+        //fprintf(fout, "%s", AS_CLASS(value)->name->chars);
+        size_t sz = snprintf(NULL, 0, "%s", AS_CLASS(value)->name->chars);
+        char* buf = malloc(sz + 1);
+        snprintf(buf, sz + 1, "%s", AS_CLASS(value)->name->chars);
+        vm->writeFn(vm, buf);
+        free(buf);
+
+        break;
+    }
+    case OBJ_CLOSURE:
+        //printFunction(fout, AS_CLOSURE(value)->function);
+        printFunctionWriteFn(vm, AS_CLOSURE(value)->function);
+        break;
+    case OBJ_FUNCTION: 
+        //printFunction(fout, AS_FUNCTION(value)); 
+        printFunctionWriteFn(vm, AS_FUNCTION(value));
+        break;
+    case OBJ_INSTANCE: {
+        //fprintf(fout, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        size_t sz = snprintf(NULL, 0, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        char* buf = malloc(sz + 1);
+        snprintf(buf, sz + 1, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        vm->writeFn(vm, buf);
+        free(buf);
+
+        break;
+    }
+    case OBJ_LIST: {
+        //ObjList* list = AS_LIST(value);
+        //fputc('[', fout);
+        //if (list->elements.count > 0) {
+        //    printValueShallow(fout, list->elements.values[0]);
+        //}
+        //for (int i = 1; i < list->elements.count; ++i) {
+        //    fputs(", ", fout);
+        //    printValueShallow(fout, list->elements.values[i]);
+        //}
+        //fputc(']', fout);
+        break;
+    }
+    case OBJ_MAP: {
+        //ObjMap* map = AS_MAP(value);
+        //fputc('{', fout);
+        //bool first = true;
+        //for (int i = 0; i < map->table.capacity; ++i) {
+        //    Entry* entry = &map->table.entries[i];
+        //    if (entry->key == NULL) {
+        //        continue;
+        //    }
+        //    if (first) {
+        //        first = false;
+        //    }
+        //    else {
+        //        fputs(", ", fout);
+        //    }
+        //    fprintf(fout, "%.*s", entry->key->length, entry->key->chars);
+        //    fputs(": ", fout);
+        //    printValueShallow(fout, entry->value);
+        //}
+        //fputc('}', fout);
+        break;
+    }
+    case OBJ_NATIVE: vm->writeFn(vm, "<native fn>"); break;
+    case OBJ_STRING: vm->writeFn(vm, AS_CSTRING(value)); break;
+    case OBJ_UPVALUE: vm->writeFn(vm, "upvalue"); break;
+    }
+}

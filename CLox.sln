@@ -13,6 +13,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLox", "build\CLox\CLox.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLoxBook", "build\CLoxBook\CLoxBook.vcxproj", "{07A1F978-EBBF-49C4-A4E3-472E7A6F4FDD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6F9BEEA-855E-4EF4-99CB-46897B4A76D9}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LoxScript", "build\LoxScript\LoxScript.vcxproj", "{30A0C4F1-A8BD-4F66-823F-1504D103F989}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +68,14 @@ Global
 		{07A1F978-EBBF-49C4-A4E3-472E7A6F4FDD}.Release|x64.Build.0 = Release|x64
 		{07A1F978-EBBF-49C4-A4E3-472E7A6F4FDD}.Release|x86.ActiveCfg = Release|Win32
 		{07A1F978-EBBF-49C4-A4E3-472E7A6F4FDD}.Release|x86.Build.0 = Release|Win32
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Debug|x64.ActiveCfg = Debug|x64
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Debug|x64.Build.0 = Debug|x64
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Debug|x86.ActiveCfg = Debug|Win32
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Debug|x86.Build.0 = Debug|Win32
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Release|x64.ActiveCfg = Release|x64
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Release|x64.Build.0 = Release|x64
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Release|x86.ActiveCfg = Release|Win32
+		{30A0C4F1-A8BD-4F66-823F-1504D103F989}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

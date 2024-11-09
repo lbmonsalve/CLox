@@ -567,6 +567,10 @@ static void initStringClass(VM* vm) {
 void initVM(VM* vm, FILE* fout, FILE* ferr) {
   vm->fout = fout;
   vm->ferr = ferr;
+  
+  vm->writeFn = NULL;
+  vm->userData = NULL;
+
   resetStack(vm);
   initGC(&vm->gc);
   vm->gc.markRoots = vmMarkRoots;
@@ -1302,8 +1306,14 @@ static InterpretResult run(VM* vm) {
         NEXT;
       }
       CASE(OP_PRINT) {
-        printValue(vm->fout, pop(vm));
-        fprintf(vm->fout, "\n");
+        Value value = pop(vm);
+        if (vm->writeFn != NULL) {
+            printValueWriteFn(vm, value);
+        }
+        else {
+            printValue(vm->fout, value);
+            fprintf(vm->fout, "\n");
+        }
         NEXT;
       }
       CASE(OP_JUMP) {

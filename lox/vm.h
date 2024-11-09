@@ -12,6 +12,11 @@
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
+typedef struct VM VM;
+
+// Displays a string of text to the user.
+typedef void (*LoxWriteFn)(VM* vm, const char* text);
+
 typedef struct {
   ObjClosure* closure;
   ObjFunction* function;
@@ -19,10 +24,13 @@ typedef struct {
   Value* slots;
 } CallFrame;
 
-typedef struct {
+typedef struct VM {
   FILE* fout;
   FILE* ferr;
   ValueArray args;
+
+  LoxWriteFn writeFn;
+  void* userData;
 
   CallFrame frames[FRAMES_MAX];
   int frameCount;
@@ -40,7 +48,7 @@ typedef struct {
   ObjClass* stringClass;
 
   GC gc;
-} VM;
+};
 
 typedef enum {
   INTERPRET_OK,

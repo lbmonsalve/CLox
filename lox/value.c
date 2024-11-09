@@ -112,3 +112,42 @@ bool valuesEqual(Value a, Value b) {
   }
 #endif
 }
+
+#include "vm.h"
+
+void printValueWriteFn(VM* vm, Value value) {
+#if NAN_BOXING == 1
+    if (IS_BOOL(value)) {
+        //fprintf(fout, "%s", AS_BOOL(value) ? "true" : "false");
+        vm->writeFn(vm, AS_BOOL(value) ? "true" : "false");
+    }
+    else if (IS_NIL(value)) {
+        //fprintf(fout, "nil");
+        vm->writeFn(vm, "nil");
+    }
+    else if (IS_NUMBER(value)) {
+        //fprintf(fout, "%g", AS_NUMBER(value));
+        double dValue = AS_NUMBER(value);
+        size_t sz = snprintf(NULL, 0, "%f", dValue);
+        char* buf = malloc(sz + 1);
+        snprintf(buf, sz + 1, "%f", dValue);
+        vm->writeFn(vm, buf);
+
+        free(buf);
+    }
+    else if (IS_OBJ(value)) {
+        //printObject(fout, value);
+        printObjectWriteFn(vm, value);
+    }
+#else
+    switch (value.type) {
+    case VAL_BOOL:
+        //fprintf(fout, AS_BOOL(value) ? "true" : "false");
+        break;
+    case VAL_NIL: //fprintf(fout, "nil"); break;
+    case VAL_NUMBER: //fprintf(fout, "%g", AS_NUMBER(value)); break;
+    case VAL_OBJ: //printObject(fout, value); break;
+    }
+#endif
+
+}
