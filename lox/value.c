@@ -129,7 +129,7 @@ void printValueWriteFn(VM* vm, Value value) {
         //fprintf(fout, "%g", AS_NUMBER(value));
         double dValue = AS_NUMBER(value);
         size_t sz = snprintf(NULL, 0, "%f", dValue);
-        char* buf = malloc(sz + 1);
+        char* buf = (char*)malloc(sz + 1);
         snprintf(buf, sz + 1, "%f", dValue);
         vm->writeFn(vm, buf);
 

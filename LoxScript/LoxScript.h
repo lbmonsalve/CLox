@@ -17,7 +17,8 @@ extern "C" {
 	// that an individual class instance will use. 
 	struct LoxScriptClassData {
 		REALstring mSource;
-		unsigned long mState;
+		int mState;
+		REALobject mContext;
 	};
 
 	// This is where we put all of the forward declarations for
@@ -27,13 +28,14 @@ extern "C" {
 	static void LoxScriptClassCompile(REALobject instance, REALstring source);
 	static void LoxScriptClassRun(REALobject instance);
 
-	void MsgBox(REALstring msg);
+	static void DebugLog(const char* buffer, ...);
 	static void writeFn(VM* vm, const char* text);
 
 	// Define the properties which our class is going to expose.
 	REALproperty LoxScriptClassProperties[] = {
 	{ "", "Source", "String", REALconsoleSafe, REALstandardGetter, REALstandardSetter, FieldOffset(LoxScriptClassData, mSource) },
-	{ "", "State", "UInt32", REALconsoleSafe, REALstandardGetter, nil, FieldOffset(LoxScriptClassData, mState) },
+	{ "", "State", "Integer", REALconsoleSafe, REALstandardGetter, nil, FieldOffset(LoxScriptClassData, mState) },
+	{ "", "Context", "Object", REALconsoleSafe, REALstandardGetter, REALstandardSetter, FieldOffset(LoxScriptClassData, mContext) },
 	};
 
 	// Now we are going to define the methods that we want our class
