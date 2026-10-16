@@ -1431,16 +1431,16 @@ SourceToDump lists[] = {
 DUMP_SRC(Lists, lists, 8);
 
 SourceToDump maps[] = {
-  { false, "({)", "Expect identifier or '['." },
-  { false, "({,)", "Expect identifier or '['." },
+  { false, "({)", "Expect expression." },
+  { false, "({,)", "Expect expression." },
   { false, "({a)", "Expect ':' after map key." },
   { false, "({a:)", "Expect expression." },
   { false, "({a:,)", "Expect expression." },
   { false, "({a:1)", "Expect '}' after map." },
-  { false, "({a:1,)", "Expect identifier or '['." },
+  { false, "({a:1,)", "Expect expression." },
   { false, "({[)", "Expect expression." },
-  { false, "({[])", "Expect expression." },
-  { false, "({[\"a\")", "Expect ']' after expression." },
+  { false, "({[])", "Expect ':' after map key." },
+  { false, "({[\"a\")", "Expect ']' after list." },
   { false, "({[\"a\"])", "Expect ':' after map key." },
   { true, "({});",
       "== <script> ==\n"
@@ -1448,7 +1448,7 @@ SourceToDump maps[] = {
       "0001    | OP_POP\n"
       "0002    | OP_NIL\n"
       "0003    | OP_RETURN\n" },
-  { true, "({a:1});",
+  { true, "({\"a\":1});",
       "== <script> ==\n"
       "0000    1 OP_MAP_INIT\n"
       "0001    | OP_CONSTANT         0 'a'\n"
@@ -1457,7 +1457,7 @@ SourceToDump maps[] = {
       "0008    | OP_POP\n"
       "0009    | OP_NIL\n"
       "0010    | OP_RETURN\n" },
-  { true, "({a:1,});",
+  { true, "({\"a\":1,});",
       "== <script> ==\n"
       "0000    1 OP_MAP_INIT\n"
       "0001    | OP_CONSTANT         0 'a'\n"
@@ -1466,7 +1466,7 @@ SourceToDump maps[] = {
       "0008    | OP_POP\n"
       "0009    | OP_NIL\n"
       "0010    | OP_RETURN\n" },
-  { true, "({[\"a\"+\"b\"]:1+2});",
+  { true, "({\"a\"+\"b\":1+2});",
       "== <script> ==\n"
       "0000    1 OP_MAP_INIT\n"
       "0001    | OP_CONSTANT         0 'a'\n"
@@ -1477,7 +1477,7 @@ SourceToDump maps[] = {
       "0014    | OP_POP\n"
       "0015    | OP_NIL\n"
       "0016    | OP_RETURN\n" },
-  { true, "({a:1,b:2});",
+  { true, "({\"a\":1,\"b\":2});",
       "== <script> ==\n"
       "0000    1 OP_MAP_INIT\n"
       "0001    | OP_CONSTANT         0 'a'\n"
@@ -1489,7 +1489,7 @@ SourceToDump maps[] = {
       "0015    | OP_POP\n"
       "0016    | OP_NIL\n"
       "0017    | OP_RETURN\n" },
-  { true, "({a:1,b:{c:2}});",
+  { true, "({\"a\":1,\"b\":{\"c\":2}});",
       "== <script> ==\n"
       "0000    1 OP_MAP_INIT\n"
       "0001    | OP_CONSTANT         0 'a'\n"

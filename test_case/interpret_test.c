@@ -1027,16 +1027,16 @@ InterpretCase listSize[] = {
 INTERPRET(ListSize, listSize, 4);
 
 InterpretCase map[] = {
-  { INTERPRET_COMPILE_ERROR, "Expect identifier or '['.", "({)" },
-  { INTERPRET_COMPILE_ERROR, "Expect identifier or '['.", "({,)" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "({)" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "({,)" },
   { INTERPRET_COMPILE_ERROR, "Expect ':' after map key.", "({a)" },
   { INTERPRET_COMPILE_ERROR, "Expect expression.", "({a:)" },
   { INTERPRET_COMPILE_ERROR, "Expect expression.", "({a:,)" },
   { INTERPRET_COMPILE_ERROR, "Expect '}' after map.", "({a:1)" },
-  { INTERPRET_COMPILE_ERROR, "Expect identifier or '['.", "({a:1,)" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "({a:1,)" },
   { INTERPRET_COMPILE_ERROR, "Expect expression.", "({[)" },
-  { INTERPRET_COMPILE_ERROR, "Expect expression.", "({[])" },
-  { INTERPRET_COMPILE_ERROR, "Expect ']' after expression.",
+  { INTERPRET_COMPILE_ERROR, "Expect ':' after map key.", "({[])" },
+  { INTERPRET_COMPILE_ERROR, "Expect ']' after list.",
       "({[\"a\")" },
   { INTERPRET_COMPILE_ERROR, "Expect ':' after map key.",
       "({[\"a\"])" },
@@ -1050,13 +1050,13 @@ InterpretCase map[] = {
   { INTERPRET_RUNTIME_ERROR, "Maps can only be indexed by string.",
       "({}[{}]=nil);" },
   { INTERPRET_OK, "{}\n", "print{};" },
-  { INTERPRET_OK, "{a: 1}\n", "print{a:1};" },
-  { INTERPRET_OK, "{a: 1}\n", "print{a:1,};" },
-  { INTERPRET_OK, "{ab: 3}\n", "print{[\"a\"+\"b\"]:1+2,};" },
-  { INTERPRET_OK, "{a: 1, b: 2}\n", "print{a:1,b:2};" },
-  { INTERPRET_OK, "{a: 1, b: <map>}\n", "print{a:1,b:{c:2}};" },
+  { INTERPRET_OK, "{a: 1}\n", "print{\"a\":1};" },
+  { INTERPRET_OK, "{a: 1}\n", "print{\"a\":1,};" },
+  { INTERPRET_OK, "{ab: 3}\n", "print{\"a\"+\"b\":1+2,};" },
+  { INTERPRET_OK, "{a: 1, b: 2}\n", "print{\"a\":1,\"b\":2};" },
+  { INTERPRET_OK, "{a: 1, b: <map>}\n", "print{\"a\":1,\"b\":{\"c\":2}};" },
   { INTERPRET_OK, "1\n2\n",
-      "var m={a:1,b:2};print m[\"a\"];print m[\"b\"];" },
+      "var m={\"a\":1,\"b\":2};print m[\"a\"];print m[\"b\"];" },
   { INTERPRET_OK, "1\n2\n1\n2\n",
       "var m={};print m[\"a\"]=1;print m[\"b\"]=2;"
       "print m[\"a\"];print m[\"b\"];" },
@@ -1068,7 +1068,7 @@ InterpretCase mapCount[] = {
   { INTERPRET_RUNTIME_ERROR, "Expected 0 arguments but got 1.",
       "({}).count(nil);" },
   { INTERPRET_OK, "0\n", "print{}.count();" },
-  { INTERPRET_OK, "3\n", "print{a:4,b:5,c:6}.count();" },
+  { INTERPRET_OK, "3\n", "print{\"a\":4,\"b\":5,\"c\":6}.count();" },
 };
 
 INTERPRET(MapCount, mapCount, 3);
@@ -1081,9 +1081,9 @@ InterpretCase mapHas[] = {
   { INTERPRET_RUNTIME_ERROR, "Maps can only be indexed by string.",
       "({}).has({});" },
   { INTERPRET_OK, "false\n", "print{}.has(\"\");" },
-  { INTERPRET_OK, "true\n", "print{a:1}.has(\"a\");" },
-  { INTERPRET_OK, "false\n", "print{a:1}.has(\"b\");" },
-  { INTERPRET_OK, "true\n", "var ha={a:1}.has;print ha(\"a\");" },
+  { INTERPRET_OK, "true\n", "print{\"a\":1}.has(\"a\");" },
+  { INTERPRET_OK, "false\n", "print{\"a\":1}.has(\"b\");" },
+  { INTERPRET_OK, "true\n", "var ha={\"a\":1}.has;print ha(\"a\");" },
 };
 
 INTERPRET(MapHas, mapHas, 7);
@@ -1092,10 +1092,10 @@ InterpretCase mapKeys[] = {
   { INTERPRET_RUNTIME_ERROR, "Expected 0 arguments but got 1.",
       "({}).keys(nil);" },
   { INTERPRET_OK, "0\n", "print{}.keys().size();" },
-  { INTERPRET_OK, "1\n", "print{a:1}.keys().size();" },
-  { INTERPRET_OK, "3\n", "print{a:1,b:2,c:3}.keys().size();" },
+  { INTERPRET_OK, "1\n", "print{\"a\":1}.keys().size();" },
+  { INTERPRET_OK, "3\n", "print{\"a\":1,\"b\":2,\"c\":3}.keys().size();" },
   { INTERPRET_OK, "6\n",
-      "var m={a:1,b:2,c:3};var ks=m.keys();var sum=0;"
+      "var m={\"a\":1,\"b\":2,\"c\":3};var ks=m.keys();var sum=0;"
       "for(var i=0;i<ks.size();i=i+1)sum=sum+m[ks[i]];"
       "print sum;" },
 };
@@ -1111,9 +1111,9 @@ InterpretCase mapRemove[] = {
       "({}).remove({});" },
   { INTERPRET_OK, "false\n", "print{}.remove(\"\");" },
   { INTERPRET_OK, "{a: 1}\ntrue\n{}\n",
-      "var m={a:1};print m;print m.remove(\"a\");print m;" },
+      "var m={\"a\":1};print m;print m.remove(\"a\");print m;" },
   { INTERPRET_OK, "{a: 1, b: 2}\n{a: 1}\n",
-      "var m={a:1,b:2};print m;m.remove(\"b\");print m;" },
+      "var m={\"a\":1,\"b\":2};print m;m.remove(\"b\");print m;" },
 };
 
 INTERPRET(MapRemove, mapRemove, 6);

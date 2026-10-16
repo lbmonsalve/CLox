@@ -623,16 +623,22 @@ static void map(Parser* parser, bool canAssign) {
     if (check(parser, TOKEN_RIGHT_BRACE)) {
       break;
     }
-    if (match(parser, TOKEN_LEFT_SQUARE)) {
-      expression(parser);
-      consume(
-          parser, TOKEN_RIGHT_SQUARE, "Expect ']' after expression.");
-    } else {
-      consume(parser, TOKEN_IDENTIFIER, "Expect identifier or '['.");
-      uint16_t constant = identifierConstant(parser, &parser->previous);
-      emitOpShort(parser, OP_CONSTANT, constant);
-    }
+    // The key.
+    expression(parser);
+    
+    //if (match(parser, TOKEN_LEFT_SQUARE)) {
+    //  expression(parser);
+    //  consume(
+    //      parser, TOKEN_RIGHT_SQUARE, "Expect ']' after expression.");
+    //} else {
+    //  consume(parser, TOKEN_IDENTIFIER, "Expect identifier or '['.");
+    //  uint16_t constant = identifierConstant(parser, &parser->previous);
+    //  emitOpShort(parser, OP_CONSTANT, constant);
+    //}
+    
     consume(parser, TOKEN_COLON, "Expect ':' after map key.");
+
+    // The value.
     expression(parser);
     emitByte(parser, OP_MAP_DATA);
   } while (match(parser, TOKEN_COMMA));

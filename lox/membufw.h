@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#define MAX_MEM_BUFFER 2048
+#define MAX_MEM_BUFFER 16384
 
 // FILE* stream memory buffer.
 typedef struct {

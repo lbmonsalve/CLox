@@ -91,6 +91,9 @@ static void LoxScriptClassCompile(REALobject instance, REALstring source)
 
 	// And lock it
 	REALLockString(me->mSource);
+
+	// ini mstate
+	me->mState = 0;
 }
 
 const char* getNameProp(const char* prop) {
