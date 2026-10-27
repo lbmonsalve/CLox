@@ -1,0 +1,10 @@
+var json = """
+{
+  "one": 1,
+  "two": 2
+}""";
+print json;
+// expect: {
+// expect:   "one": 1,
+// expect:   "two": 2
+// expect: }

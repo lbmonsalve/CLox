@@ -149,9 +149,15 @@ SourceToDump strings[] = {
       "0003    | OP_POP\n"
       "0004    | OP_NIL\n"
       "0005    | OP_RETURN\n" },
+  { true, "\"\"\"bar\"\"\";",
+      "== <script> ==\n"
+      "0000    1 OP_CONSTANT         0 'bar'\n"
+      "0003    | OP_POP\n"
+      "0004    | OP_NIL\n"
+      "0005    | OP_RETURN\n" },
 };
 
-DUMP_SRC(Strings, strings, 2);
+DUMP_SRC(Strings, strings, 3);
 
 SourceToDump varGet[] = {
   { true, "foo;",

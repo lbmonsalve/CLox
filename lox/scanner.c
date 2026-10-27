@@ -167,7 +167,56 @@ static Token number(Scanner* scanner) {
   return makeToken(scanner, TOKEN_NUMBER);
 }
 
+static Token rawString(Scanner* scanner) {
+    //consume the second and third "
+    advance(scanner);
+    advance(scanner);
+
+    int charsDiscard = 2;
+
+    //if there's a newline immediately after, 
+    //discard it so it's not part of the literal
+    if (peek(scanner) == '\r') {
+        charsDiscard++;
+        advance(scanner);
+    }
+    if (peek(scanner) == '\n') {
+        charsDiscard++;
+        advance(scanner);
+    }
+
+    for (;;) {
+        char c = advance(scanner);
+        char c1 = peek(scanner);
+        char c2 = peekNext(scanner);
+
+        if (c == '\r' || c == '\n') {
+            scanner->line++;
+        }
+
+        if (c == '"' && c1 == '"' && c2 == '"') break;
+        if (isAtEnd(scanner)) break;
+    }
+
+    if (isAtEnd(scanner)) {
+        return errorToken(scanner, "Unterminated string.");
+    }
+
+    //consume the second and third "
+    advance(scanner);
+    advance(scanner);
+
+    Token token;
+    token.type = TOKEN_STRING;
+    token.start = scanner->start + charsDiscard;
+    token.length = (int)(scanner->current - scanner->start - (charsDiscard+ 2));
+    token.line = scanner->line;
+    return token;
+}
+
 static Token string(Scanner* scanner) {
+  if (peek(scanner) == '"' && peekNext(scanner) == '"') return rawString(scanner);
+  
   while (peek(scanner) != '"' && !isAtEnd(scanner)) {
     if (peek(scanner) == '\n') {
       scanner->line++;
