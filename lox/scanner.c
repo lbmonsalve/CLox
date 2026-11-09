@@ -185,7 +185,7 @@ static Token rawString(Scanner* scanner) {
         advance(scanner);
     }
 
-    for (;;) {
+    while (!isAtEnd(scanner)) {
         char c = advance(scanner);
         char c1 = peek(scanner);
         char c2 = peekNext(scanner);
@@ -195,7 +195,6 @@ static Token rawString(Scanner* scanner) {
         }
 
         if (c == '"' && c1 == '"' && c2 == '"') break;
-        if (isAtEnd(scanner)) break;
     }
 
     if (isAtEnd(scanner)) {
@@ -209,7 +208,7 @@ static Token rawString(Scanner* scanner) {
     Token token;
     token.type = TOKEN_STRING;
     token.start = scanner->start + charsDiscard;
-    token.length = (int)(scanner->current - scanner->start - (charsDiscard+ 2));
+    token.length = (int)(scanner->current - scanner->start - charsDiscard - 2);
     token.line = scanner->line;
     return token;
 }
