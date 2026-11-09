@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "vm.h"
 
-#define LOX_VERSION_STRING "0.0.241106"
+#define LOX_VERSION_STRING "0.0.261109"
 
 #define STR(x) #x
 #define XSTR(x) STR(x)

@@ -81,10 +81,38 @@ static void skipWhitespace(Scanner* scanner) {
         break;
       case '/':
         if (peekNext(scanner) == '/') {
-          // A comment goes until the end of the line.
-          while (peek(scanner) != '\n' && !isAtEnd(scanner)) {
+            // A comment goes until the end of the line.
+            while (peek(scanner) != '\n' && !isAtEnd(scanner)) {
+                advance(scanner);
+            }
+        } else if (peekNext(scanner) == '*') {
+            // block comment
             advance(scanner);
-          }
+            advance(scanner);
+
+            int nesting = 1;
+            while (nesting > 0 && !isAtEnd(scanner)) {
+                if (peek(scanner) == '\n') {
+                    scanner->line++;
+                    advance(scanner);
+                }
+
+                if (peek(scanner) == '/' && peekNext(scanner) == '*') {
+                    advance(scanner);
+                    advance(scanner);
+                    nesting++;
+                    continue;
+                }
+
+                if (peek(scanner) == '*' && peekNext(scanner) == '/') {
+                    advance(scanner);
+                    advance(scanner);
+                    nesting--;
+                    continue;
+                }
+
+                advance(scanner);
+            }
         } else {
           return;
         }

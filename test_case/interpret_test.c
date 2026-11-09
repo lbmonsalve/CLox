@@ -271,9 +271,10 @@ InterpretCase comments[] = {
   { INTERPRET_OK, "1\n", "//\nprint 1;" },
   { INTERPRET_OK, "2\n", "//print 1;\nprint 2;" },
   { INTERPRET_OK, "1\n2\n", "//\nprint 1;\nprint 2;" },
+  { INTERPRET_OK, "3\n", "//\nprint /* comment */ 3;" },
 };
 
-INTERPRET(Comments, comments, 7);
+INTERPRET(Comments, comments, 8);
 
 InterpretCase print[] = {
   { INTERPRET_OK, "1\n", "print 1;" },

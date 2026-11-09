@@ -1,0 +1,7 @@
+/*
+
+  /* nested! */
+
+*/
+
+print /* comment */ "ok"; // expect: ok
