@@ -373,6 +373,22 @@ InterpretCase lessEqual[] = {
 
 INTERPRET(LessEqual, lessEqual, 3);
 
+InterpretCase conditional[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression", "print true?" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ':' after then branch of conditional operator.",
+      "print true?1;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression", "print false?1:;" },
+
+  { INTERPRET_OK, "false\n", "print false?\"true\":\"false\"; " },
+  { INTERPRET_OK, "true\n", "print true?\"true\":\"false\";" },
+  { INTERPRET_OK, "2\n", "print false?1:2;" },
+};
+
+INTERPRET(Conditional, conditional, 6);
+
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },

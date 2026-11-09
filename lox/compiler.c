@@ -68,6 +68,7 @@ typedef struct {
 typedef enum {
   PREC_NONE,
   PREC_ASSIGNMENT, // =
+  PREC_CONDITIONAL,// ?:
   PREC_OR,         // or
   PREC_AND,        // and
   PREC_EQUALITY,   // == !=
@@ -770,6 +771,29 @@ static void unary(Parser* parser, bool canAssign) {
   }
 }
 
+static void condit(Parser* parser, bool canAssign) {
+    (void)canAssign;
+
+    // Jump to the else branch if the condition is false.
+    int ifJump = emitJump(parser, OP_JUMP_IF_FALSE);
+
+    // Compile the then branch.
+    parsePrecedence(parser, PREC_CONDITIONAL, false);
+
+    consume(parser, TOKEN_COLON, "Expect ':' after then branch of conditional operator.");
+
+    // Jump over the else branch when the if branch is taken.
+    int elseJump = emitJump(parser, OP_JUMP);
+
+    // Compile the else branch.
+    patchJump(parser, ifJump);
+
+    parsePrecedence(parser, PREC_ASSIGNMENT, false);
+
+    // Patch the jump over the else.
+    patchJump(parser, elseJump);
+}
+
 // clang-format off
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = { grouping, call,   PREC_CALL },
@@ -787,6 +811,7 @@ ParseRule rules[] = {
   [TOKEN_SEMICOLON]     = { NULL,     NULL,   PREC_NONE },
   [TOKEN_SLASH]         = { NULL,     binary, PREC_FACTOR },
   [TOKEN_STAR]          = { NULL,     binary, PREC_FACTOR },
+  [TOKEN_QUESTION]      = { NULL,     condit, PREC_ASSIGNMENT },
   [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
   [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
   [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },
