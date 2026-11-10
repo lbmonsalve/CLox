@@ -79,6 +79,7 @@ int disassembleInstruction(FILE* ferr, Chunk* chunk, int offset) {
     case OP_TRUE: return simpleInstruction(ferr, "OP_TRUE", offset);
     case OP_FALSE: return simpleInstruction(ferr, "OP_FALSE", offset);
     case OP_POP: return simpleInstruction(ferr, "OP_POP", offset);
+    case OP_DUP: return simpleInstruction(ferr, "OP_DUP", offset);
     case OP_GET_LOCAL:
       return byteInstruction(ferr, "OP_GET_LOCAL", chunk, offset);
     case OP_SET_LOCAL:

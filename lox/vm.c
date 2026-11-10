@@ -984,6 +984,10 @@ static InterpretResult run(VM* vm) {
         pop(vm);
         NEXT;
       }
+      CASE(OP_DUP) {
+        push(vm, peek(vm, 0));
+        NEXT;
+      }
       CASE(OP_GET_LOCAL) {
         uint8_t slot = READ_BYTE();
         push(vm, frame->slots[slot]);

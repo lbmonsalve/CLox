@@ -1277,6 +1277,19 @@ static void breakStatement(Parser* parser) {
     ctx->breakJumps[ctx->breakCount++] = jump;
 }
 
+static void addBreak(Parser* parser) {
+    ControlContext* ctx = currentContext(parser);
+
+    while (parser->currentCompiler->localCount > 0 &&
+        parser->currentCompiler->locals[parser->currentCompiler->localCount - 1].depth > ctx->scopeDepth) {
+        emitByte(parser, OP_POP);
+        parser->currentCompiler->localCount--;
+    }
+
+    int jump = emitJump(parser, OP_JUMP);
+    ctx->breakJumps[ctx->breakCount++] = jump;
+}
+
 static void continueStatement(Parser* parser) {
     ControlContext* ctx = currentContext(parser);
 
@@ -1338,28 +1351,94 @@ static void declaration(Parser* parser) {
   }
 }
 
+static matchStatement(Parser* parser) {
+    expression(parser); // Condition on the stack
+    consume(parser, TOKEN_LEFT_BRACE, "Expect '{' after 'match'.");
+
+    int matchStart = currentChunk(parser)->count;
+    beginControlContext(parser, matchStart, true);
+
+    bool hasDefault = false; // Only one default possible
+    bool isEmpty = true;
+
+    while (!check(parser, TOKEN_RIGHT_BRACE) && !check(parser, TOKEN_EOF)) {
+        if (match(parser, TOKEN_UNDERSCORE)) {
+            if (hasDefault) {
+                error(parser, "Multiple '_' labels in one 'match'.");
+            }
+            hasDefault = true;
+
+            consume(parser, TOKEN_COLON, "Expect ':' after default.");
+
+            while (!check(parser, TOKEN_COMMA) && !check(parser, TOKEN_UNDERSCORE) &&
+                !check(parser, TOKEN_RIGHT_BRACE) && !check(parser, TOKEN_EOF)) {
+                statement(parser);
+            }
+
+            isEmpty = false;
+        } else {
+            if (hasDefault) {
+                error(parser, "Label '_' only last 'match'.");
+            }
+
+            emitByte(parser, OP_DUP); // Dup switch condition
+            expression(parser);
+            consume(parser, TOKEN_COLON, "Expect ':' after case value.");
+
+            emitByte(parser, OP_EQUAL);
+            int caseJump = emitJump(parser, OP_JUMP_IF_FALSE);
+            emitByte(parser, OP_POP);
+
+            while (!check(parser, TOKEN_COMMA) && !check(parser, TOKEN_UNDERSCORE) &&
+                !check(parser, TOKEN_RIGHT_BRACE) && !check(parser, TOKEN_EOF)) {
+                statement(parser);
+            }
+
+            if (check(parser, TOKEN_COMMA))
+                addBreak(parser); // TODO: chk 'break' stmt
+
+            patchJump(parser, caseJump);
+            emitByte(parser, OP_POP);
+
+            isEmpty = false;
+        }
+
+        if (check(parser, TOKEN_COMMA)) 
+            advance(parser);
+    }
+    
+    if (isEmpty)
+        error(parser, "Empty branches in 'match'.");
+
+    consume(parser, TOKEN_RIGHT_BRACE, "Expect '}' after 'match'.");
+
+    endControlContext(parser);
+}
+
 static void statement(Parser* parser) {
-  if (match(parser, TOKEN_PRINT)) {
-    printStatement(parser);
-  } else if (match(parser, TOKEN_FOR)) {
-    forStatement(parser);
-  } else if (match(parser, TOKEN_IF)) {
-    ifStatement(parser);
-  } else if (match(parser, TOKEN_RETURN)) {
-    returnStatement(parser);
-  } else if (match(parser, TOKEN_WHILE)) {
-    whileStatement(parser);
-  } else if (match(parser, TOKEN_BREAK)) {
-      breakStatement(parser);
-  } else if (match(parser, TOKEN_CONTINUE)) {
-      continueStatement(parser);
-  } else if (match(parser, TOKEN_LEFT_BRACE)) {
-    beginScope(parser);
-    block(parser);
-    endScope(parser);
-  } else {
-    expressionStatement(parser);
-  }
+	if (match(parser, TOKEN_PRINT)) {
+		printStatement(parser);
+	} else if (match(parser, TOKEN_FOR)) {
+		forStatement(parser);
+	} else if (match(parser, TOKEN_IF)) {
+		ifStatement(parser);
+	} else if (match(parser, TOKEN_RETURN)) {
+		returnStatement(parser);
+	} else if (match(parser, TOKEN_WHILE)) {
+		whileStatement(parser);
+	} else if (match(parser, TOKEN_BREAK)) {
+		breakStatement(parser);
+	} else if (match(parser, TOKEN_CONTINUE)) {
+		continueStatement(parser);
+	} else if (match(parser, TOKEN_MATCH)) {
+		matchStatement(parser);
+	} else if (match(parser, TOKEN_LEFT_BRACE)) {
+		beginScope(parser);
+		block(parser);
+		endScope(parser);
+	} else {
+		expressionStatement(parser);
+	}
 }
 
 static void compilerMarkRoots(struct GC* gc, void* arg) {

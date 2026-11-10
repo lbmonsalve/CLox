@@ -434,6 +434,35 @@ InterpretCase continueBreak[] = {
 
 INTERPRET(ContinueBreak, continueBreak, 6);
 
+InterpretCase match[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "match" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "match;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect variable name.", "var match;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect '{' after 'match'.", "match {}" },
+  { INTERPRET_COMPILE_ERROR,
+      "Empty branches in 'match'.", "match 1 {}" },
+  { INTERPRET_OK,
+      "nil\n", "match nil {nil:print nil;}" },
+  { INTERPRET_OK,
+      "1\n", "match 0 {0:print 1;}" },
+  { INTERPRET_OK,
+      "true\n", "match true {true:print true;}" },
+  { INTERPRET_OK,
+      "false\n", "match false {true:print true;, false:print false;}" },
+  { INTERPRET_OK,
+      "default\n", "match nil {true:print true;, false:print false;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "2\n", "var i=2; match i {0:print 0;, 1:print 1;, 2:print 2;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "1 1/2\n", "var i=1.5; match i {0:print 0;, 1+0.5 :print \"1 1/2\";, 2:print 2;, _:print \"default\";}" },
+};
+
+INTERPRET(Match, match, 12);
+
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },
