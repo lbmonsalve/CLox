@@ -30,6 +30,14 @@ typedef enum {
   TYPE_SCRIPT,
 } FunctionType;
 
+typedef struct ControlContext {
+    int loopStart;
+    int breakJumps[32];
+    int breakCount;
+    int scopeDepth;
+    bool isSwitch;
+} ControlContext;
+
 typedef struct Compiler {
   struct Compiler* enclosing;
   ObjFunction* function;
@@ -39,6 +47,9 @@ typedef struct Compiler {
   int localCount;
   Upvalue upvalues[UINT8_COUNT];
   int scopeDepth;
+
+  ControlContext controlStack[16]; // TODO: Check break jumps and control_stack coun
+  int controlStackTop;
 } Compiler;
 
 typedef struct ClassCompiler {
@@ -60,6 +71,7 @@ typedef struct {
   ClassCompiler* currentClass;
   Token current;
   Token previous;
+  Token lastVariable;
   bool hadError;
   bool panicMode;
 } Parser;
@@ -91,6 +103,10 @@ typedef struct {
 
 static Chunk* currentChunk(Parser* parser) {
   return &parser->currentCompiler->function->chunk;
+}
+
+static ControlContext* currentContext(Parser* parser) {
+    return &parser->currentCompiler->controlStack[parser->currentCompiler->controlStackTop];
 }
 
 static void errorAt(Parser* parser, Token* token, const char* message) {
@@ -237,7 +253,7 @@ static void patchJump(Parser* parser, int offset) {
 static void initCompiler(Parser* parser, Compiler* compiler,
     FunctionType type, const char* name, int nameLength) {
   compiler->enclosing = parser->currentCompiler;
-  compiler->function = NULL;
+  //compiler->function = NULL;
   compiler->type = type;
   compiler->localCount = 0;
   compiler->scopeDepth = 0;
@@ -259,6 +275,8 @@ static void initCompiler(Parser* parser, Compiler* compiler,
     local->name.start = "";
     local->name.length = 0;
   }
+
+  compiler->controlStackTop = -1;
 }
 
 static ObjFunction* endCompiler(Parser* parser) {
@@ -296,6 +314,25 @@ static void endScope(Parser* parser) {
     }
     parser->currentCompiler->localCount--;
   }
+}
+
+static void beginControlContext(Parser* parser, int start, bool isSwitch) {
+    parser->currentCompiler->controlStackTop++;
+    ControlContext* ctx = currentContext(parser);
+    ctx->isSwitch = isSwitch;
+    ctx->loopStart = start;
+    ctx->breakCount = 0;
+    ctx->scopeDepth = parser->currentCompiler->scopeDepth;
+}
+
+static void endControlContext(Parser* parser) {
+    ControlContext* ctx = currentContext(parser);
+
+    for (int i = 0; i < ctx->breakCount; i++) {
+        patchJump(parser, ctx->breakJumps[i]);
+    }
+
+    parser->currentCompiler->controlStackTop--;
 }
 
 static bool parsePrecedence(
@@ -709,7 +746,30 @@ static void namedVariable(Parser* parser, Token name, bool canAssign) {
 }
 
 static void variable(Parser* parser, bool canAssign) {
-  namedVariable(parser, parser->previous, canAssign);
+    parser->lastVariable = parser->previous;
+    namedVariable(parser, parser->previous, canAssign);
+}
+
+static void emitSetVariable(Parser* parser, Token name) {
+    int arg = resolveLocal(parser, parser->currentCompiler, &name);
+    if (arg != -1) {
+        emitBytes(parser, OP_SET_LOCAL, (uint8_t)arg);
+        return;
+    }
+
+    arg = resolveUpvalue(parser, parser->currentCompiler, &name);
+    if (arg != -1) {
+        emitBytes(parser, OP_SET_UPVALUE, (uint8_t)arg);
+        return;
+    }
+
+    arg = identifierConstant(parser, &name);
+    if (arg <= UINT16_MAX) {
+        emitOpShort(parser, OP_SET_GLOBAL, (uint16_t)arg);
+    }
+    else {
+        error(parser, "Too many constants. 16-bit max.");
+    }
 }
 
 static Token syntheticToken(const char* text) {
@@ -776,6 +836,7 @@ static void condit(Parser* parser, bool canAssign) {
 
     // Jump to the else branch if the condition is false.
     int ifJump = emitJump(parser, OP_JUMP_IF_FALSE);
+    emitByte(parser, OP_POP);
 
     // Compile the then branch.
     parsePrecedence(parser, PREC_CONDITIONAL, false);
@@ -787,11 +848,71 @@ static void condit(Parser* parser, bool canAssign) {
 
     // Compile the else branch.
     patchJump(parser, ifJump);
+    emitByte(parser, OP_POP);
+
 
     parsePrecedence(parser, PREC_ASSIGNMENT, false);
 
     // Patch the jump over the else.
     patchJump(parser, elseJump);
+}
+
+static void qdot(Parser* parser, bool canAssign) {
+    dot(parser, canAssign);
+}
+
+static void incr(Parser* parser, bool canAssign) {
+    if (!canAssign) {
+        error(parser, "Invalid increment target.");
+        return;
+    }
+
+    Token name = parser->lastVariable;
+    namedVariable(parser, name, false);
+    emitConstant(parser, NUMBER_VAL(1));
+    emitByte(parser, OP_ADD);
+    emitSetVariable(parser, name);
+    emitByte(parser, OP_POP); // Doesn't leave value on the stack
+}
+
+static void decr(Parser* parser, bool canAssign) {
+    if (!canAssign) {
+        error(parser, "Invalid decrement target.");
+        return;
+    }
+
+    Token name = parser->lastVariable;
+    namedVariable(parser, name, false);
+    emitConstant(parser, NUMBER_VAL(-1));
+    emitByte(parser, OP_ADD);
+    emitSetVariable(parser, name);
+    emitByte(parser, OP_POP); // Doesn't leave value on the stack
+}
+
+static void compou(Parser* parser, bool canAssign) {
+    if (!canAssign) {
+        error(parser, "Invalid assignment target.");
+        return;
+    }
+
+    Token op = parser->previous;
+    Token name = parser->lastVariable;
+
+    namedVariable(parser, name, false);
+    parsePrecedence(parser, PREC_ASSIGNMENT+ 1, false);
+
+    switch (op.type) {
+    case TOKEN_PLUS_EQUAL:  emitByte(parser, OP_ADD);      break;
+    case TOKEN_MINUS_EQUAL: emitByte(parser, OP_SUBTRACT); break;
+    case TOKEN_STAR_EQUAL:  emitByte(parser, OP_MULTIPLY); break;
+    case TOKEN_SLASH_EQUAL: emitByte(parser, OP_DIVIDE);   break;
+    default:
+        error(parser, "Unknown compound assignment operator.");
+        return;
+    }
+
+    emitSetVariable(parser, name);
+    emitByte(parser, OP_POP); // Doesn't leave value on the stack
 }
 
 // clang-format off
@@ -805,12 +926,19 @@ ParseRule rules[] = {
   [TOKEN_COLON]         = { NULL,     NULL,   PREC_NONE },
   [TOKEN_COMMA]         = { NULL,     NULL,   PREC_NONE },
   [TOKEN_DOT]           = { NULL,     dot,    PREC_CALL },
+  [TOKEN_QUESTION_DOT]  = { NULL,     qdot,   PREC_CALL },
   [TOKEN_MINUS]         = { unary,    binary, PREC_TERM },
+  [TOKEN_MINUS_MINUS]   = { unary,    decr,   PREC_UNARY },
   [TOKEN_PERCENT]       = { NULL,     binary, PREC_FACTOR },
   [TOKEN_PLUS]          = { NULL,     binary, PREC_TERM },
+  [TOKEN_PLUS_PLUS]     = { NULL,     incr,   PREC_UNARY },
   [TOKEN_SEMICOLON]     = { NULL,     NULL,   PREC_NONE },
   [TOKEN_SLASH]         = { NULL,     binary, PREC_FACTOR },
   [TOKEN_STAR]          = { NULL,     binary, PREC_FACTOR },
+  [TOKEN_PLUS_EQUAL]    = { NULL,     compou, PREC_ASSIGNMENT },
+  [TOKEN_MINUS_EQUAL]   = { NULL,     compou, PREC_ASSIGNMENT },
+  [TOKEN_SLASH_EQUAL]   = { NULL,     compou, PREC_ASSIGNMENT },
+  [TOKEN_STAR_EQUAL]    = { NULL,     compou, PREC_ASSIGNMENT },
   [TOKEN_QUESTION]      = { NULL,     condit, PREC_ASSIGNMENT },
   [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
   [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
@@ -1023,6 +1151,7 @@ static void expressionStatement(Parser* parser) {
 static void forStatement(Parser* parser) {
   beginScope(parser);
   consume(parser, TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+
   if (match(parser, TOKEN_SEMICOLON)) {
     // No initializer.
   } else if (match(parser, TOKEN_VAR)) {
@@ -1032,6 +1161,9 @@ static void forStatement(Parser* parser) {
   }
 
   int loopStart = currentChunk(parser)->count;
+  beginControlContext(parser, loopStart, false);
+
+  // Condition
   int exitJump = -1;
   if (!match(parser, TOKEN_SEMICOLON)) {
     expression(parser);
@@ -1042,6 +1174,7 @@ static void forStatement(Parser* parser) {
     exitJump = emitJump(parser, OP_PJMP_IF_FALSE);
   }
 
+  // Parse incrememnt but run it at the end of loop
   if (!match(parser, TOKEN_RIGHT_PAREN)) {
     int bodyJump = emitJump(parser, OP_JUMP);
     int incrementStart = currentChunk(parser)->count;
@@ -1061,6 +1194,7 @@ static void forStatement(Parser* parser) {
     patchJump(parser, exitJump);
   }
 
+  endControlContext(parser);
   endScope(parser);
 }
 
@@ -1108,6 +1242,8 @@ static void returnStatement(Parser* parser) {
 
 static void whileStatement(Parser* parser) {
   int loopStart = currentChunk(parser)->count;
+  beginControlContext(parser, loopStart, false);
+
   consume(parser, TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression(parser);
   consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
@@ -1117,6 +1253,47 @@ static void whileStatement(Parser* parser) {
   emitLoop(parser, loopStart);
 
   patchJump(parser, exitJump);
+
+  endControlContext(parser);
+}
+
+static void breakStatement(Parser* parser) {
+    if (parser->currentCompiler->controlStackTop < 0) {
+        error(parser, "Can't use 'break' outside of a loop or switch statement.");
+        return;
+    }
+
+    consume(parser, TOKEN_SEMICOLON, "Expect ';' after 'break'.");
+
+    ControlContext* ctx = currentContext(parser);
+
+    while (parser->currentCompiler->localCount > 0 &&
+        parser->currentCompiler->locals[parser->currentCompiler->localCount - 1].depth > ctx->scopeDepth) {
+        emitByte(parser, OP_POP);
+        parser->currentCompiler->localCount--;
+    }
+
+    int jump = emitJump(parser, OP_JUMP);
+    ctx->breakJumps[ctx->breakCount++] = jump;
+}
+
+static void continueStatement(Parser* parser) {
+    ControlContext* ctx = currentContext(parser);
+
+    if (ctx->isSwitch || parser->currentCompiler->controlStackTop < 0) {
+        error(parser, "Can't use 'continue' outside of a loop statement.");
+        return;
+    }
+
+    consume(parser, TOKEN_SEMICOLON, "Expect ';' after 'continue'.");
+
+    while (parser->currentCompiler->localCount > 0 &&
+        parser->currentCompiler->locals[parser->currentCompiler->localCount - 1].depth > ctx->scopeDepth) {
+        emitByte(parser, OP_POP);
+        parser->currentCompiler->localCount--;
+    }
+
+    emitLoop(parser, ctx->loopStart);
 }
 
 static void synchronize(Parser* parser) {
@@ -1133,6 +1310,8 @@ static void synchronize(Parser* parser) {
       case TOKEN_FOR:
       case TOKEN_IF:
       case TOKEN_WHILE:
+      case TOKEN_BREAK:
+      case TOKEN_CONTINUE:
       case TOKEN_PRINT:
       case TOKEN_RETURN: return;
 
@@ -1170,6 +1349,10 @@ static void statement(Parser* parser) {
     returnStatement(parser);
   } else if (match(parser, TOKEN_WHILE)) {
     whileStatement(parser);
+  } else if (match(parser, TOKEN_BREAK)) {
+      breakStatement(parser);
+  } else if (match(parser, TOKEN_CONTINUE)) {
+      continueStatement(parser);
   } else if (match(parser, TOKEN_LEFT_BRACE)) {
     beginScope(parser);
     block(parser);

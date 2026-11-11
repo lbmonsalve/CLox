@@ -18,7 +18,7 @@
 #define XSTR(x) STR(x)
 
 static void printVersion(FILE* fout) {
-  fputs("clox " XSTR(LOX_VERSION_STRING) "\n", fout);
+  fputs("clox " LOX_VERSION_STRING "\n", fout);
 }
 
 static void repl(int argc, const char* argv[]) {

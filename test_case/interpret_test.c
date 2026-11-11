@@ -384,10 +384,55 @@ InterpretCase conditional[] = {
 
   { INTERPRET_OK, "false\n", "print false?\"true\":\"false\"; " },
   { INTERPRET_OK, "true\n", "print true?\"true\":\"false\";" },
-  { INTERPRET_OK, "2\n", "print false?1:2;" },
+  { INTERPRET_OK, "2\n", "print 1>2?1:2;" },
 };
 
 INTERPRET(Conditional, conditional, 6);
+
+InterpretCase compound[] = {
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i++;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i--;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i+=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i-=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i*=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i/=1;" },
+  { INTERPRET_OK, "2\n", "var i=1; i++; print i;" },
+  { INTERPRET_OK, "1\n", "var i=2; i--; print i;" },
+  { INTERPRET_OK, "4\n", "var i=1; i+=3; print i;" },
+  { INTERPRET_OK, "3\n", "var i=4; i-=1; print i;" },
+  { INTERPRET_OK, "9\n", "var i=3; i*=3; print i;" },
+  { INTERPRET_OK, "3\n", "var i=9; i/=3; print i;" },
+  { INTERPRET_OK, "0\n1\n", "var i=0; print i++; print i;" },
+  { INTERPRET_OK, "0\n-1\n", "var i=0; print i--; print i;" },
+  { INTERPRET_OK, "1\n3\n", "var i=1; print i+=2; print i;" },
+  { INTERPRET_OK, "2\n1\n", "var i=2; print i-=1; print i;" },
+  { INTERPRET_OK, "3\n12\n", "var i=3; print i*=4; print i;" },
+  { INTERPRET_OK, "4\n2\n", "var i=4; print i/=2; print i;" },
+};
+
+INTERPRET(Compound, compound, 18);
+
+InterpretCase continueBreak[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'continue' outside of a loop statement.", "continue;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'continue' outside of a loop statement.", "if (true) continue;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'break' outside of a loop or switch statement.", "break;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'break' outside of a loop or switch statement.", "if (true) break;" },
+  { INTERPRET_OK, "1\n3\n", "var i=0; while (i<3) {i++; if (i==2) continue; print i;}" },
+  { INTERPRET_OK, "1\n3\n4\n", 
+      "var i=0; while (true) {i++; if (i==2) continue; print i; if (i==4) break; }" },
+};
+
+INTERPRET(ContinueBreak, continueBreak, 6);
 
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",

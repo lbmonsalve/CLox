@@ -1,0 +1,6 @@
+var i=1; i++; print i; // expect: 2
+i--; print i; // expect: 1
+i+=3; print i; // expect: 4
+i-=1; print i; // expect: 3
+i*=3; print i; // expect: 9
+i/=3; print i; // expect: 3

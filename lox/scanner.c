@@ -82,39 +82,9 @@ static void skipWhitespace(Scanner* scanner) {
       case '/':
         if (peekNext(scanner) == '/') {
             // A comment goes until the end of the line.
-            while (peek(scanner) != '\n' && !isAtEnd(scanner)) {
-                advance(scanner);
-            }
-        } else if (peekNext(scanner) == '*') {
-            // block comment
-            advance(scanner);
-            advance(scanner);
-
-            int nesting = 1;
-            while (nesting > 0 && !isAtEnd(scanner)) {
-                if (peek(scanner) == '\n') {
-                    scanner->line++;
-                    advance(scanner);
-                }
-
-                if (peek(scanner) == '/' && peekNext(scanner) == '*') {
-                    advance(scanner);
-                    advance(scanner);
-                    nesting++;
-                    continue;
-                }
-
-                if (peek(scanner) == '*' && peekNext(scanner) == '/') {
-                    advance(scanner);
-                    advance(scanner);
-                    nesting--;
-                    continue;
-                }
-
-                advance(scanner);
-            }
+            while (peek(scanner) != '\n' && !isAtEnd(scanner)) advance(scanner);
         } else {
-          return;
+            return;
         }
         break;
       default: return;
@@ -135,7 +105,15 @@ static TokenType checkKeyword(Scanner* scanner, int start, int length,
 static TokenType identifierType(Scanner* scanner) {
   switch (scanner->start[0]) {
     case 'a': return checkKeyword(scanner, 1, 2, "nd", TOKEN_AND);
-    case 'c': return checkKeyword(scanner, 1, 4, "lass", TOKEN_CLASS);
+    case 'b': return checkKeyword(scanner, 1, 4, "reak", TOKEN_BREAK);
+    case 'c': 
+        if (scanner->current - scanner->start > 1) {
+            switch (scanner->start[1]) {
+            case 'l': return checkKeyword(scanner, 2, 3, "ass", TOKEN_CLASS);
+            case 'o': return checkKeyword(scanner, 2, 6, "ntinue", TOKEN_CONTINUE);
+            }
+        }
+        break;
     case 'e': return checkKeyword(scanner, 1, 3, "lse", TOKEN_ELSE);
     case 'f':
       if (scanner->current - scanner->start > 1) {
@@ -260,6 +238,33 @@ static Token string(Scanner* scanner) {
   return makeToken(scanner, TOKEN_STRING);
 }
 
+static Token skipBlockComment(Scanner* scanner) {
+    int nesting = 1;
+    while (nesting > 0) {
+        if (isAtEnd(scanner))
+            return errorToken(scanner, "Block comment aren't paired.");
+
+        if (peek(scanner) == '/' && peekNext(scanner) == '*') {
+            advance(scanner);
+            advance(scanner);
+            nesting++;
+            continue;
+        }
+
+        if (peek(scanner) == '*' && peekNext(scanner) == '/') {
+            advance(scanner);
+            advance(scanner);
+            nesting--;
+            continue;
+        }
+
+        if (peek(scanner) == '\n') scanner->line++;
+        advance(scanner);
+    }
+
+    return scanToken(scanner);
+}
+
 Token scanToken(Scanner* scanner) {
   skipWhitespace(scanner);
   scanner->start = scanner->current;
@@ -287,12 +292,34 @@ Token scanToken(Scanner* scanner) {
     case ':': return makeToken(scanner, TOKEN_COLON);
     case ',': return makeToken(scanner, TOKEN_COMMA);
     case '.': return makeToken(scanner, TOKEN_DOT);
-    case '-': return makeToken(scanner, TOKEN_MINUS);
+    case '-': 
+        if (match(scanner, '-'))
+            return makeToken(scanner, TOKEN_MINUS_MINUS);
+        else if (match(scanner, '='))
+            return makeToken(scanner, TOKEN_MINUS_EQUAL);
+        else
+            return makeToken(scanner, TOKEN_MINUS);
     case '%': return makeToken(scanner, TOKEN_PERCENT);
-    case '+': return makeToken(scanner, TOKEN_PLUS);
-    case '/': return makeToken(scanner, TOKEN_SLASH);
-    case '*': return makeToken(scanner, TOKEN_STAR);
-    case '?': return makeToken(scanner, TOKEN_QUESTION);
+    case '+': 
+        if (match(scanner, '+'))
+            return makeToken(scanner, TOKEN_PLUS_PLUS);
+        else if (match(scanner, '='))
+            return makeToken(scanner, TOKEN_PLUS_EQUAL);
+        else
+            return makeToken(scanner, TOKEN_PLUS);
+    case '/': 
+        if (match(scanner, '*'))
+            return skipBlockComment(scanner);
+        else if (match(scanner, '='))
+            return makeToken(scanner, TOKEN_SLASH_EQUAL);
+        else
+            return makeToken(scanner, TOKEN_SLASH);
+    case '*': 
+      return makeToken(
+          scanner, match(scanner, '=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
+    case '?': 
+      return makeToken(
+          scanner, match(scanner, '.') ? TOKEN_QUESTION_DOT : TOKEN_QUESTION);
     case '!':
       return makeToken(
           scanner, match(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
