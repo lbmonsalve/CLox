@@ -269,6 +269,47 @@ static Token skipBlockComment(Scanner* scanner) {
     return scanToken(scanner);
 }
 
+static bool isHexDigit(Scanner* scanner) {
+    char c = peek(scanner);
+    if (c >= '0' && c <= '9') return true;
+    if (c >= 'a' && c <= 'f') return true;
+    if (c >= 'A' && c <= 'F') return true;
+
+    return false;
+}
+
+static Token hexNumber(Scanner* scanner) {
+    while (isHexDigit(scanner)) advance(scanner);
+
+    return makeToken(scanner, TOKEN_NUMBER);
+}
+
+static bool isOctDigit(Scanner* scanner) {
+    char c = peek(scanner);
+    if (c >= '0' && c <= '7') return true;
+
+    return false;
+}
+
+static Token octNumber(Scanner* scanner) {
+    while (isOctDigit(scanner)) advance(scanner);
+
+    return makeToken(scanner, TOKEN_NUMBER);
+}
+
+static bool isBinDigit(Scanner* scanner) {
+    char c = peek(scanner);
+    if (c == '0' || c == '1') return true;
+
+    return false;
+}
+
+static Token binNumber(Scanner* scanner) {
+    while (isBinDigit(scanner)) advance(scanner);
+
+    return makeToken(scanner, TOKEN_NUMBER);
+}
+
 Token scanToken(Scanner* scanner) {
   skipWhitespace(scanner);
   scanner->start = scanner->current;
@@ -278,12 +319,6 @@ Token scanToken(Scanner* scanner) {
   }
 
   char c = advance(scanner);
-  if (isAlpha(c)) {
-    return identifier(scanner);
-  }
-  if (isDigit(c)) {
-    return number(scanner);
-  }
 
   switch (c) {
     case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
@@ -337,6 +372,22 @@ Token scanToken(Scanner* scanner) {
       return makeToken(scanner,
           match(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
     case '"': return string(scanner);
+    case '0': 
+        if (match(scanner, 'x') || match(scanner, 'X'))
+            return hexNumber(scanner);
+        else if (match(scanner, 'c') || match(scanner, 'C'))
+            return octNumber(scanner);
+        else if (match(scanner, 'b') || match(scanner, 'B'))
+            return binNumber(scanner);
+        else
+            return number(scanner);
+  }
+
+  if (isAlpha(c)) {
+      return identifier(scanner);
+  }
+  if (isDigit(c)) {
+      return number(scanner);
   }
 
   return errorToken(scanner, "Unexpected character.");

@@ -465,6 +465,32 @@ InterpretCase match[] = {
 
 INTERPRET(Match, match, 13);
 
+InterpretCase hexOctBin[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xfg;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xfgf;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xg;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c8;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c182;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c18;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b1021;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b5;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b13;" },
+  { INTERPRET_OK, "255\n", "print 0Xff;" },
+  { INTERPRET_OK, "83\n", "print 0C123;" },
+  { INTERPRET_OK, "5\n", "print 0B101;" },
+};
+
+INTERPRET(HexOctBin, hexOctBin, 12);
+
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },

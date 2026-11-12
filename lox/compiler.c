@@ -686,7 +686,20 @@ static void map(Parser* parser, bool canAssign) {
 static void number(Parser* parser, bool canAssign) {
   (void)canAssign;
 
-  double value = strtod(parser->previous.start, NULL);
+  int buflen = parser->previous.length;
+  char* buffer = parser->previous.start;
+  double value = 0.0;
+
+  if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'c' || buffer[1] == 'C'))
+      value = (double)strtol(buffer + 2, NULL, 8);  // octal
+  else if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'x' || buffer[1] == 'X'))
+      value = strtod(buffer, NULL);  // hex
+  else if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'b' || buffer[1] == 'B'))
+      value = (double)strtol(buffer + 2, NULL, 2);  // binary
+  else
+      value = strtod(buffer, NULL);  // decimal
+
+  //double value = strtod(parser->previous.start, NULL);
   emitConstant(parser, NUMBER_VAL(value));
 }
 
