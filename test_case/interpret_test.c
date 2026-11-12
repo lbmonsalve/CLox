@@ -459,9 +459,11 @@ InterpretCase match[] = {
       "2\n", "var i=2; match i {0:print 0;, 1:print 1;, 2:print 2;, _:print \"default\";}" },
   { INTERPRET_OK,
       "1 1/2\n", "var i=1.5; match i {0:print 0;, 1+0.5 :print \"1 1/2\";, 2:print 2;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "5\n", "var _1=5; match _1 {0:print 0;, 1+2*2 :print 5;, _:print \"default\";}" },
 };
 
-INTERPRET(Match, match, 12);
+INTERPRET(Match, match, 13);
 
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",

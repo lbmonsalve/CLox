@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "vm.h"
 
-#define LOX_VERSION_STRING "0.0.261109"
+#define LOX_VERSION_STRING "0.0.261112"
 
 #define STR(x) #x
 #define XSTR(x) STR(x)
@@ -36,7 +36,7 @@ static void repl(int argc, const char* argv[]) {
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(100);
 
-  printf("clox %s (74e4c12a) type .help for more information\n", LOX_VERSION_STRING);
+  printf("clox %s (81acbbaf) type .help for more information\n", LOX_VERSION_STRING);
   
   for (;;) {
     const char* prompt = ftell(src.fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";

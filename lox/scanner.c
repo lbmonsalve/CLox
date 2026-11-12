@@ -104,7 +104,9 @@ static TokenType checkKeyword(Scanner* scanner, int start, int length,
 
 static TokenType identifierType(Scanner* scanner) {
   switch (scanner->start[0]) {
-    case '_': return TOKEN_UNDERSCORE;
+    case '_': 
+        if (scanner->current - scanner->start == 1) return TOKEN_UNDERSCORE;
+        break;
     case 'a': return checkKeyword(scanner, 1, 2, "nd", TOKEN_AND);
     case 'b': return checkKeyword(scanner, 1, 4, "reak", TOKEN_BREAK);
     case 'c': 
