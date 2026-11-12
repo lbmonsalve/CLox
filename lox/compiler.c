@@ -871,7 +871,16 @@ static void condit(Parser* parser, bool canAssign) {
 }
 
 static void qdot(Parser* parser, bool canAssign) {
+    // class C{init(n){this.name=n;}} var c=C("bob"); print c?.name;
+    emitByte(parser, OP_DUP);
+    emitByte(parser, OP_NIL);
+    emitByte(parser, OP_EQUAL);
+    emitByte(parser, OP_NOT);
+    int thenJump = emitJump(parser, OP_PJMP_IF_FALSE);
+
     dot(parser, canAssign);
+
+    patchJump(parser, thenJump);
 }
 
 static void incr(Parser* parser, bool canAssign) {

@@ -1,0 +1,2 @@
+if (!nil) print 1; // expect: 1
+var c; print c?.name; // expect: nil

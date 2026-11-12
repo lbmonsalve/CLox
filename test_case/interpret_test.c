@@ -491,6 +491,15 @@ InterpretCase hexOctBin[] = {
 
 INTERPRET(HexOctBin, hexOctBin, 12);
 
+InterpretCase nilContitional[] = {
+  { INTERPRET_RUNTIME_ERROR,
+      "Only lists and instances have properties.", "var c; print c.name;" },
+  { INTERPRET_OK, "nil\n", "var c; print c?.name;" },
+  { INTERPRET_OK, "bob\n", "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name;" },
+};
+
+INTERPRET(NilContitional, nilContitional, 3);
+
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },
