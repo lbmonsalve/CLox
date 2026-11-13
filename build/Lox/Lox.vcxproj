@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\lox\object.c" />
     <ClCompile Include="..\..\lox\scanner.c" />
     <ClCompile Include="..\..\lox\table.c" />
+    <ClCompile Include="..\..\lox\utils.c" />
     <ClCompile Include="..\..\lox\value.c" />
     <ClCompile Include="..\..\lox\vm.c" />
   </ItemGroup>
@@ -43,6 +44,7 @@
     <ClInclude Include="..\..\lox\obj_native.h" />
     <ClInclude Include="..\..\lox\scanner.h" />
     <ClInclude Include="..\..\lox\table.h" />
+    <ClInclude Include="..\..\lox\utils.h" />
     <ClInclude Include="..\..\lox\value.h" />
     <ClInclude Include="..\..\lox\vm.h" />
   </ItemGroup>

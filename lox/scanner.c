@@ -9,6 +9,8 @@ void initScanner(Scanner* scanner, const char* source) {
   scanner->start = source;
   scanner->current = source;
   scanner->line = 1;
+
+  scanner->numParens = 0;
 }
 
 static bool isAlpha(char c) {
@@ -57,6 +59,15 @@ static Token makeToken(Scanner* scanner, TokenType type) {
   token.length = (int)(scanner->current - scanner->start);
   token.line = scanner->line;
   return token;
+}
+
+static Token makeTokenWith(Scanner* scanner, TokenType type, const char* start, int length) {
+    Token token;
+    token.type = type;
+    token.start = start;
+    token.length = length;
+    token.line = scanner->line;
+    return token;
 }
 
 static Token errorToken(Scanner* scanner, const char* message) {
@@ -215,20 +226,40 @@ static Token rawString(Scanner* scanner) {
     advance(scanner);
     advance(scanner);
 
-    Token token;
-    token.type = TOKEN_STRING;
-    token.start = scanner->start + charsDiscard;
-    token.length = (int)(scanner->current - scanner->start - charsDiscard - 2);
-    token.line = scanner->line;
-    return token;
+    return makeTokenWith(scanner, TOKEN_STRING, scanner->start + charsDiscard, 
+        (int)(scanner->current - scanner->start - charsDiscard - 2));
 }
 
 static Token string(Scanner* scanner) {
   if (peek(scanner) == '"' && peekNext(scanner) == '"') return rawString(scanner);
   
-  while (peek(scanner) != '"' && !isAtEnd(scanner)) {
+  while (!isAtEnd(scanner)) {
     if (peek(scanner) == '\n') {
       scanner->line++;
+    }
+    else if (peek(scanner) == '\\' && (peekNext(scanner) == '"' || peekNext(scanner) == '\\')) {
+        advance(scanner);
+    }
+    else if (peek(scanner) == '\\' && peekNext(scanner) == '%') {
+        advance(scanner);
+    }
+    else if (peek(scanner) == '%') { // interpolated 
+        if (scanner->numParens < MAX_INTERPOLATION_NESTING) {
+            if (peekNext(scanner) != '(') 
+                return errorToken(scanner, "Expect '(' after '%'.");
+
+            advance(scanner); // %
+            advance(scanner); // (
+
+            scanner->parens[scanner->numParens++] = 1;
+
+            return makeTokenWith(scanner, TOKEN_INTERPOLATION, scanner->start, 
+                (int)(scanner->current - scanner->start - 1));
+        }
+        return errorToken(scanner, "Interpolation may only nest %d levels deep.");
+    }
+    else if (peek(scanner) == '"') {
+        break;
     }
     advance(scanner);
   }
@@ -321,8 +352,22 @@ Token scanToken(Scanner* scanner) {
   char c = advance(scanner);
 
   switch (c) {
-    case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
-    case ')': return makeToken(scanner, TOKEN_RIGHT_PAREN);
+    case '(': 
+        // If we are inside an interpolated expression, count the unmatched "(".
+        if (scanner->numParens > 0) scanner->parens[scanner->numParens - 1]++;
+
+        return makeToken(scanner, TOKEN_LEFT_PAREN);
+    case ')': 
+        // If we are inside an interpolated expression, count the ")".
+        if (scanner->numParens > 0 && --scanner->parens[scanner->numParens - 1] == 0)
+        {
+            // This is the final ")", so the interpolation expression has ended.
+            // This ")" now begins the next section of the template string.
+            scanner->numParens--;
+            return string(scanner);
+        }
+
+        return makeToken(scanner, TOKEN_RIGHT_PAREN);
     case '{': return makeToken(scanner, TOKEN_LEFT_BRACE);
     case '}': return makeToken(scanner, TOKEN_RIGHT_BRACE);
     case '[': return makeToken(scanner, TOKEN_LEFT_SQUARE);

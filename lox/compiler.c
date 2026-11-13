@@ -9,6 +9,7 @@
 #include "gc.h"
 #include "memory.h"
 #include "scanner.h"
+#include "utils.h"
 
 bool debugPrintCode = false;
 
@@ -716,14 +717,122 @@ static void or_(Parser* parser, bool canAssign) {
   patchJump(parser, endJump);
 }
 
+// Reads the next character, which should be a hex digit (0-9, a-f, or A-F) and
+// returns its numeric value. If the character isn't a hex digit, returns -1.
+static int readHexDigit(Parser* parser, int curr)
+{
+    char c = *(parser->previous.start + curr);
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+
+    return -1;
+}
+
+// Reads [digits] hex digits in a string literal and returns their number value.
+static int readHexEscape(Parser* parser, int digits, const char* description, int curr)
+{
+    int value = 0;
+    int currDigit = curr;
+    for (int i = 0; i < digits; i++)
+    {
+        int digit = readHexDigit(parser, ++currDigit);
+        if (digit == -1)
+        {
+            error(parser, "Invalid escape sequence.");
+            break;
+        }
+
+        value = (value * 16) | digit;
+    }
+
+    return value;
+}
+
+// Reads a hex digit Unicode escape sequence in a string literal.
+static void readUnicodeEscape(Parser* parser, ByteBuffer* string, int length, int curr)
+{
+    int value = readHexEscape(parser, length, "Unicode", curr);
+
+    // Grow the buffer enough for the encoded result.
+    int numBytes = Utf8EncodeNumBytes(value);
+    if (numBytes != 0)
+    {
+        ByteBufferFill(parser->gc, string, 0, numBytes);
+        Utf8Encode(value, string->data + string->count - numBytes);
+    }
+}
+
 static void string(Parser* parser, bool canAssign) {
   (void)canAssign;
 
+  ByteBuffer string;
+  ByteBufferInit(&string);
+
+  for (int i = 1; i <= parser->previous.length - 2; i++)
+  {
+      char c = *(parser->previous.start + i);
+
+      if (c == '\\')
+      {
+          char c1 = *(parser->previous.start + (++i));
+          switch (c1)
+          {
+          case '"':  ByteBufferWrite(parser->gc, &string, '"'); break;
+          case '\\': ByteBufferWrite(parser->gc, &string, '\\'); break;
+          case '%':  ByteBufferWrite(parser->gc, &string, '%'); break;
+          case '0':  ByteBufferWrite(parser->gc, &string, '\0'); break;
+          case 'a':  ByteBufferWrite(parser->gc, &string, '\a'); break;
+          case 'b':  ByteBufferWrite(parser->gc, &string, '\b'); break;
+          case 'e':  ByteBufferWrite(parser->gc, &string, '\33'); break;
+          case 'f':  ByteBufferWrite(parser->gc, &string, '\f'); break;
+          case 'n':  ByteBufferWrite(parser->gc, &string, '\n'); break;
+          case 'r':  ByteBufferWrite(parser->gc, &string, '\r'); break;
+          case 't':  ByteBufferWrite(parser->gc, &string, '\t'); break;
+          case 'u':  readUnicodeEscape(parser, &string, 4, i); i += 4; break;
+          case 'U':  readUnicodeEscape(parser, &string, 8, i); i += 8; break;
+          case 'v':  ByteBufferWrite(parser->gc, &string, '\v'); break;
+          case 'x':
+              ByteBufferWrite(parser->gc, &string,
+                  (uint8_t)readHexEscape(parser, 2, "byte", i));
+              i += 2;
+              break;
+          default:
+              error(parser, "Invalid escape character.");
+              break;
+          }
+      }
+      else
+      {
+          ByteBufferWrite(parser->gc, &string, c);
+      }
+  }
+
   Value s = OBJ_VAL(copyString(parser->gc, parser->strings,
-      parser->previous.start + 1, parser->previous.length - 2));
+      (char*)string.data, string.count));
   pushTemp(parser->gc, s);
   emitConstant(parser, s);
   popTemp(parser->gc);
+
+  ByteBufferClear(parser->gc, &string);
+}
+
+static void interp(Parser* parser, bool canAssign) {
+    (void)canAssign;
+
+    do
+    {
+        // The opening string part.
+        string(parser, false);
+        expression(parser);
+        emitByte(parser, OP_ADD);
+
+    } while (match(parser, TOKEN_INTERPOLATION));
+
+    // The trailing string part.
+    consume(parser, TOKEN_STRING, "Expect end of string interpolation.");
+    string(parser, false);
+    emitByte(parser, OP_ADD);
 }
 
 static void namedVariable(Parser* parser, Token name, bool canAssign) {
@@ -998,6 +1107,7 @@ ParseRule rules[] = {
   [TOKEN_LESS_EQUAL]    = { NULL,     binary, PREC_COMPARISON },
   [TOKEN_IDENTIFIER]    = { variable, NULL,   PREC_NONE },
   [TOKEN_STRING]        = { string,   NULL,   PREC_NONE },
+  [TOKEN_INTERPOLATION] = { interp,   NULL,   PREC_NONE },
   [TOKEN_NUMBER]        = { number,   NULL,   PREC_NONE },
   [TOKEN_AND]           = { NULL,     and_,   PREC_AND },
   [TOKEN_CLASS]         = { NULL,     NULL,   PREC_NONE },

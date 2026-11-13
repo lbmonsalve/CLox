@@ -4,6 +4,12 @@
 
 #include <stdio.h>
 
+// The maximum depth that interpolation can nest. For example, this string has
+// three levels:
+//
+//      "outside %(one + "%(two + "%(three)")")"
+#define MAX_INTERPOLATION_NESTING 8
+
 typedef enum {
   // Single-character tokens.
   TOKEN_LEFT_PAREN,
@@ -43,6 +49,7 @@ typedef enum {
   // Literals.
   TOKEN_IDENTIFIER,
   TOKEN_STRING,
+  TOKEN_INTERPOLATION,
   TOKEN_NUMBER,
   // Keywords.
   TOKEN_AND,
@@ -73,6 +80,10 @@ typedef struct {
   const char* start;
   const char* current;
   int line;
+
+  int parens[MAX_INTERPOLATION_NESTING];
+  int numParens;
+
 } Scanner;
 
 typedef struct {

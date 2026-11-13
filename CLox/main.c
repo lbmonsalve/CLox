@@ -29,7 +29,7 @@ static void repl(int argc, const char* argv[]) {
   const char prefix[] = "print";
   const size_t inputStart = sizeof(prefix) - 1;
 
-  MemBuffer src;
+  MemBuffer src; // TODO: replace with better buffer
   initMemBuffer(&src);
   fputs(prefix, src.fptr);
 
@@ -130,6 +130,8 @@ static void runFile(const char* path, int argc, const char* argv[]) {
   if (result == INTERPRET_RUNTIME_ERROR) {
     exit(70);
   }
+
+  free(source);
 }
 
 static void printHelp(FILE* fout) {

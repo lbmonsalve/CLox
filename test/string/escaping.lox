@@ -1,0 +1,15 @@
+print "\""; // expect: "
+print "\\"; // expect: \
+print "\%"; // expect: %
+print "hello\0 world"; // expect: hello\0
+print "\a"; // play sound?
+print "\b"; // backspace?
+print "\e"; // ←
+print "\f"; // form feed
+print "\n"; // new line
+print "\t"; // tab
+print "\r"; // return
+print "\u2605"; // expect: ★
+print "\U0001F600"; // expect: 😀
+print "\v"; // vertical tab
+print "\xE2\x98\xBA"; expect: smiley face

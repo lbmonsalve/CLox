@@ -1,0 +1,2 @@
+//print "hello %( "world" )!"; // expected: hello world!
+var world= " world"; print "hello%(world)!"; // expected: hello world!

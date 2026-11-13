@@ -373,145 +373,6 @@ InterpretCase lessEqual[] = {
 
 INTERPRET(LessEqual, lessEqual, 3);
 
-InterpretCase conditional[] = {
-  { INTERPRET_COMPILE_ERROR,
-      "Expect expression", "print true?" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ':' after then branch of conditional operator.",
-      "print true?1;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect expression", "print false?1:;" },
-
-  { INTERPRET_OK, "false\n", "print false?\"true\":\"false\"; " },
-  { INTERPRET_OK, "true\n", "print true?\"true\":\"false\";" },
-  { INTERPRET_OK, "2\n", "print 1>2?1:2;" },
-};
-
-INTERPRET(Conditional, conditional, 6);
-
-InterpretCase compound[] = {
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be two numbers or two strings.", "var i; i++;" },
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be two numbers or two strings.", "var i; i--;" },
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be two numbers or two strings.", "var i; i+=1;" },
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be numbers.", "var i; i-=1;" },
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be numbers.", "var i; i*=1;" },
-  { INTERPRET_RUNTIME_ERROR,
-      "Operands must be numbers.", "var i; i/=1;" },
-  { INTERPRET_OK, "2\n", "var i=1; i++; print i;" },
-  { INTERPRET_OK, "1\n", "var i=2; i--; print i;" },
-  { INTERPRET_OK, "4\n", "var i=1; i+=3; print i;" },
-  { INTERPRET_OK, "3\n", "var i=4; i-=1; print i;" },
-  { INTERPRET_OK, "9\n", "var i=3; i*=3; print i;" },
-  { INTERPRET_OK, "3\n", "var i=9; i/=3; print i;" },
-  { INTERPRET_OK, "0\n1\n", "var i=0; print i++; print i;" },
-  { INTERPRET_OK, "0\n-1\n", "var i=0; print i--; print i;" },
-  { INTERPRET_OK, "1\n3\n", "var i=1; print i+=2; print i;" },
-  { INTERPRET_OK, "2\n1\n", "var i=2; print i-=1; print i;" },
-  { INTERPRET_OK, "3\n12\n", "var i=3; print i*=4; print i;" },
-  { INTERPRET_OK, "4\n2\n", "var i=4; print i/=2; print i;" },
-};
-
-INTERPRET(Compound, compound, 18);
-
-InterpretCase continueBreak[] = {
-  { INTERPRET_COMPILE_ERROR,
-      "Can't use 'continue' outside of a loop statement.", "continue;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Can't use 'continue' outside of a loop statement.", "if (true) continue;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Can't use 'break' outside of a loop or switch statement.", "break;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Can't use 'break' outside of a loop or switch statement.", "if (true) break;" },
-  { INTERPRET_OK, "1\n3\n", "var i=0; while (i<3) {i++; if (i==2) continue; print i;}" },
-  { INTERPRET_OK, "1\n3\n4\n", 
-      "var i=0; while (true) {i++; if (i==2) continue; print i; if (i==4) break; }" },
-};
-
-INTERPRET(ContinueBreak, continueBreak, 6);
-
-InterpretCase match[] = {
-  { INTERPRET_COMPILE_ERROR,
-      "Expect expression.", "match" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect expression.", "match;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect variable name.", "var match;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect '{' after 'match'.", "match {}" },
-  { INTERPRET_COMPILE_ERROR,
-      "Empty branches in 'match'.", "match 1 {}" },
-  { INTERPRET_OK,
-      "nil\n", "match nil {nil:print nil;}" },
-  { INTERPRET_OK,
-      "1\n", "match 0 {0:print 1;}" },
-  { INTERPRET_OK,
-      "true\n", "match true {true:print true;}" },
-  { INTERPRET_OK,
-      "false\n", "match false {true:print true;, false:print false;}" },
-  { INTERPRET_OK,
-      "default\n", "match nil {true:print true;, false:print false;, _:print \"default\";}" },
-  { INTERPRET_OK,
-      "2\n", "var i=2; match i {0:print 0;, 1:print 1;, 2:print 2;, _:print \"default\";}" },
-  { INTERPRET_OK,
-      "1 1/2\n", "var i=1.5; match i {0:print 0;, 1+0.5 :print \"1 1/2\";, 2:print 2;, _:print \"default\";}" },
-  { INTERPRET_OK,
-      "5\n", "var _1=5; match _1 {0:print 0;, 1+2*2 :print 5;, _:print \"default\";}" },
-};
-
-INTERPRET(Match, match, 13);
-
-InterpretCase hexOctBin[] = {
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0xfg;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0xfgf;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0xg;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0c8;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0c182;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0c18;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0b1021;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0b5;" },
-  { INTERPRET_COMPILE_ERROR,
-      "Expect ';' after value.", "print 0b13;" },
-  { INTERPRET_OK, "255\n", "print 0Xff;" },
-  { INTERPRET_OK, "83\n", "print 0C123;" },
-  { INTERPRET_OK, "5\n", "print 0B101;" },
-};
-
-INTERPRET(HexOctBin, hexOctBin, 12);
-
-InterpretCase nilContitional[] = {
-  { INTERPRET_RUNTIME_ERROR,
-      "Only lists and instances have properties.", "var c; print c.name;" },
-  { INTERPRET_OK, "nil\n", "var c; print c?.name;" },
-  { INTERPRET_OK, "bob\n", "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name;" },
-};
-
-INTERPRET(NilContitional, nilContitional, 3);
-
-InterpretCase nilcoalesing[] = {
-  { INTERPRET_COMPILE_ERROR,
-      "Expect expression.", "print nil ?:" },
-  { INTERPRET_OK, "1\n", "print nil ?: 1;" },
-  { INTERPRET_OK, "2\n", "print 2 ?: 1;" },
-  { INTERPRET_OK, "default\n", "var c; print c?.name?:\"default\";" },
-  { INTERPRET_OK, "bob\n", 
-    "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name?:\"mary\";" },
-};
-
-INTERPRET(Nilcoalesing, nilcoalesing, 5);
-
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },
@@ -1257,6 +1118,190 @@ InterpretCase mapRemove[] = {
 };
 
 INTERPRET(MapRemove, mapRemove, 6);
+
+InterpretCase conditional[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression", "print true?" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ':' after then branch of conditional operator.",
+      "print true?1;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression", "print false?1:;" },
+
+  { INTERPRET_OK, "false\n", "print false?\"true\":\"false\"; " },
+  { INTERPRET_OK, "true\n", "print true?\"true\":\"false\";" },
+  { INTERPRET_OK, "2\n", "print 1>2?1:2;" },
+};
+
+INTERPRET(Conditional, conditional, 6);
+
+InterpretCase compound[] = {
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i++;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i--;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be two numbers or two strings.", "var i; i+=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i-=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i*=1;" },
+  { INTERPRET_RUNTIME_ERROR,
+      "Operands must be numbers.", "var i; i/=1;" },
+  { INTERPRET_OK, "2\n", "var i=1; i++; print i;" },
+  { INTERPRET_OK, "1\n", "var i=2; i--; print i;" },
+  { INTERPRET_OK, "4\n", "var i=1; i+=3; print i;" },
+  { INTERPRET_OK, "3\n", "var i=4; i-=1; print i;" },
+  { INTERPRET_OK, "9\n", "var i=3; i*=3; print i;" },
+  { INTERPRET_OK, "3\n", "var i=9; i/=3; print i;" },
+  { INTERPRET_OK, "0\n1\n", "var i=0; print i++; print i;" },
+  { INTERPRET_OK, "0\n-1\n", "var i=0; print i--; print i;" },
+  { INTERPRET_OK, "1\n3\n", "var i=1; print i+=2; print i;" },
+  { INTERPRET_OK, "2\n1\n", "var i=2; print i-=1; print i;" },
+  { INTERPRET_OK, "3\n12\n", "var i=3; print i*=4; print i;" },
+  { INTERPRET_OK, "4\n2\n", "var i=4; print i/=2; print i;" },
+};
+
+INTERPRET(Compound, compound, 18);
+
+InterpretCase continueBreak[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'continue' outside of a loop statement.", "continue;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'continue' outside of a loop statement.", "if (true) continue;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'break' outside of a loop or switch statement.", "break;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Can't use 'break' outside of a loop or switch statement.", "if (true) break;" },
+  { INTERPRET_OK, "1\n3\n", "var i=0; while (i<3) {i++; if (i==2) continue; print i;}" },
+  { INTERPRET_OK, "1\n3\n4\n",
+      "var i=0; while (true) {i++; if (i==2) continue; print i; if (i==4) break; }" },
+};
+
+INTERPRET(ContinueBreak, continueBreak, 6);
+
+InterpretCase match[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "match" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "match;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect variable name.", "var match;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect '{' after 'match'.", "match {}" },
+  { INTERPRET_COMPILE_ERROR,
+      "Empty branches in 'match'.", "match 1 {}" },
+  { INTERPRET_OK,
+      "nil\n", "match nil {nil:print nil;}" },
+  { INTERPRET_OK,
+      "1\n", "match 0 {0:print 1;}" },
+  { INTERPRET_OK,
+      "true\n", "match true {true:print true;}" },
+  { INTERPRET_OK,
+      "false\n", "match false {true:print true;, false:print false;}" },
+  { INTERPRET_OK,
+      "default\n", "match nil {true:print true;, false:print false;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "2\n", "var i=2; match i {0:print 0;, 1:print 1;, 2:print 2;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "1 1/2\n", "var i=1.5; match i {0:print 0;, 1+0.5 :print \"1 1/2\";, 2:print 2;, _:print \"default\";}" },
+  { INTERPRET_OK,
+      "5\n", "var _1=5; match _1 {0:print 0;, 1+2*2 :print 5;, _:print \"default\";}" },
+};
+
+INTERPRET(Match, match, 13);
+
+InterpretCase hexOctBin[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xfg;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xfgf;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0xg;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c8;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c182;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0c18;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b1021;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b5;" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect ';' after value.", "print 0b13;" },
+  { INTERPRET_OK, "255\n", "print 0Xff;" },
+  { INTERPRET_OK, "83\n", "print 0C123;" },
+  { INTERPRET_OK, "5\n", "print 0B101;" },
+};
+
+INTERPRET(HexOctBin, hexOctBin, 12);
+
+InterpretCase nilContitional[] = {
+  { INTERPRET_RUNTIME_ERROR,
+      "Only lists and instances have properties.", "var c; print c.name;" },
+  { INTERPRET_OK, "nil\n", "var c; print c?.name;" },
+  { INTERPRET_OK, "bob\n", "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name;" },
+};
+
+INTERPRET(NilContitional, nilContitional, 3);
+
+InterpretCase nilcoalesing[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "print nil ?:" },
+  { INTERPRET_OK, "1\n", "print nil ?: 1;" },
+  { INTERPRET_OK, "2\n", "print 2 ?: 1;" },
+  { INTERPRET_OK, "default\n", "var c; print c?.name?:\"default\";" },
+  { INTERPRET_OK, "bob\n",
+    "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name?:\"mary\";" },
+};
+
+INTERPRET(Nilcoalesing, nilcoalesing, 5);
+
+InterpretCase escapeStrings[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Unterminated string.", "print \"\\\";" },
+
+      // TODO: chk this errors:
+
+      //{ INTERPRET_OK, "\"", "print \"\\\"\";" },
+      //{ INTERPRET_OK, "\\", "print \"\\\\\";"},
+      //{ INTERPRET_OK, "\%", "print \"\\\%\";"},
+      //{ INTERPRET_OK, "hello", "print \"hello\\0 world\";"},
+      //{ INTERPRET_OK, "\a", "print \"\\\a\";"},
+      //{ INTERPRET_OK, "\b", "print \"\\\b\";"},
+      //{ INTERPRET_OK, "\33", "print \"\\\e\";"},
+      //{ INTERPRET_OK, "\f", "print \"\\\f\";"},
+      //{ INTERPRET_OK, "\n", "print \"\\\n\";"},
+      //{ INTERPRET_OK, "\r", "print \"\\\r\";"},
+      //{ INTERPRET_OK, "\t", "print \"\\\t\";"},
+      { INTERPRET_COMPILE_ERROR,
+          "Invalid escape sequence.", "print \"\\u\";" },
+          //{ INTERPRET_OK, "\u2605", "print \"\\u2605\";"},
+          { INTERPRET_COMPILE_ERROR,
+              "Invalid escape sequence.", "print \"\\U\";" },
+              //{ INTERPRET_OK, "\U0001F600", "print \"\\U0001F600\";"},
+              //{ INTERPRET_OK, "\v", "print \"\\\v\";"},
+              { INTERPRET_COMPILE_ERROR,
+                  "Invalid escape sequence.", "print \"\\x\";" },
+                  //{ INTERPRET_OK, "\x26", "print \"\\x26\";"},
+};
+
+INTERPRET(EscapeStrings, escapeStrings, 4);
+
+InterpretCase interpolatedString[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect '(' after '%'.", "print \"hello \% \";" },
+  { INTERPRET_COMPILE_ERROR,
+      "Unterminated string.", "print \"hello \%(\";" },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect end of string interpolation.", "print \"hello \%()\";" },
+  { INTERPRET_OK, "hello \n", "print \"hello \%(\"\")\";" },
+  { INTERPRET_OK, "hello world!\n", "print \"hello \%(\"world\")!\";" },
+  //{ INTERPRET_OK, "hello world!\n", "var w=\" world\"; print \"hello \%(w)!\";" },
+};
+
+INTERPRET(InterpolatedString, interpolatedString, 5);
 
 UTEST_STATE();
 
