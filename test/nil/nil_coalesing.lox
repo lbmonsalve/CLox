@@ -1,1 +1,2 @@
-print nil ?: 2;
+print nil ?: 2; // expect: 2
+//print 1 ?: 2; // expect: 1
