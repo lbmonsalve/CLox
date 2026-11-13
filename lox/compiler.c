@@ -848,7 +848,7 @@ static void condit(Parser* parser, bool canAssign) {
     (void)canAssign;
 
     // Jump to the else branch if the condition is false.
-    int ifJump = emitJump(parser, OP_JUMP_IF_FALSE);
+    int thenJump = emitJump(parser, OP_JUMP_IF_FALSE);
     emitByte(parser, OP_POP);
 
     // Compile the then branch.
@@ -860,9 +860,8 @@ static void condit(Parser* parser, bool canAssign) {
     int elseJump = emitJump(parser, OP_JUMP);
 
     // Compile the else branch.
-    patchJump(parser, ifJump);
+    patchJump(parser, thenJump);
     emitByte(parser, OP_POP);
-
 
     parsePrecedence(parser, PREC_ASSIGNMENT, false);
 
@@ -871,7 +870,7 @@ static void condit(Parser* parser, bool canAssign) {
 }
 
 static void qdot(Parser* parser, bool canAssign) {
-    // class C{init(n){this.name=n;}} var c=C("bob"); print c?.name;
+    // test if not nil
     emitByte(parser, OP_DUP);
     emitByte(parser, OP_NIL);
     emitByte(parser, OP_EQUAL);
@@ -937,6 +936,32 @@ static void compou(Parser* parser, bool canAssign) {
     emitByte(parser, OP_POP); // Doesn't leave value on the stack
 }
 
+static void coales(Parser* parser, bool canAssign) {
+    (void)canAssign;
+
+    // test nil
+    emitByte(parser, OP_DUP);
+    emitByte(parser, OP_NIL);
+    emitByte(parser, OP_EQUAL);
+
+    // Jump if not nil
+    int thenJump = emitJump(parser, OP_JUMP_IF_FALSE);
+    emitByte(parser, OP_POP); // remove boolean test
+    emitByte(parser, OP_POP); // remove nil
+
+    // Compile right branch.
+    parsePrecedence(parser, PREC_CONDITIONAL, false);
+
+    // Jump for NOT remove result
+    int exitJump = emitJump(parser, OP_JUMP);
+
+    patchJump(parser, thenJump);
+
+    emitByte(parser, OP_POP); // remove boolean test
+
+    patchJump(parser, exitJump);
+}
+
 // clang-format off
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = { grouping, call,   PREC_CALL },
@@ -962,6 +987,7 @@ ParseRule rules[] = {
   [TOKEN_SLASH_EQUAL]   = { NULL,     compou, PREC_ASSIGNMENT },
   [TOKEN_STAR_EQUAL]    = { NULL,     compou, PREC_ASSIGNMENT },
   [TOKEN_QUESTION]      = { NULL,     condit, PREC_ASSIGNMENT },
+  [TOKEN_QUESTION_COLON]= { NULL,     coales, PREC_ASSIGNMENT },
   [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
   [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
   [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },

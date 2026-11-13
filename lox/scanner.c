@@ -356,9 +356,13 @@ Token scanToken(Scanner* scanner) {
     case '*': 
       return makeToken(
           scanner, match(scanner, '=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
-    case '?': 
-      return makeToken(
-          scanner, match(scanner, '.') ? TOKEN_QUESTION_DOT : TOKEN_QUESTION);
+    case '?':
+        if (match(scanner, '.'))
+            return makeToken(scanner, TOKEN_QUESTION_DOT);
+        else if (match(scanner, ':'))
+            return makeToken(scanner, TOKEN_QUESTION_COLON);
+        else
+            return makeToken(scanner, TOKEN_QUESTION);
     case '!':
       return makeToken(
           scanner, match(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);

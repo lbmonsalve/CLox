@@ -500,6 +500,18 @@ InterpretCase nilContitional[] = {
 
 INTERPRET(NilContitional, nilContitional, 3);
 
+InterpretCase nilcoalesing[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "print nil ?:" },
+  { INTERPRET_OK, "1\n", "print nil ?: 1;" },
+  { INTERPRET_OK, "2\n", "print 2 ?: 1;" },
+  { INTERPRET_OK, "default\n", "var c; print c?.name?:\"default\";" },
+  { INTERPRET_OK, "bob\n", 
+    "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name?:\"mary\";" },
+};
+
+INTERPRET(Nilcoalesing, nilcoalesing, 5);
+
 InterpretCase strings[] = {
   { INTERPRET_RUNTIME_ERROR, "String index (0) out of bounds (0).",
       "\"\"[0];" },

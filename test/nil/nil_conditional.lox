@@ -1,0 +1,10 @@
+class C {
+  init(n) {
+    this.name= n;
+  }
+} 
+var c= C("bob"); 
+print c?.name; // expect: bob
+c= nil;
+print c?.name; // expect: nil
+
