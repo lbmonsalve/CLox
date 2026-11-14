@@ -688,20 +688,31 @@ static void number(Parser* parser, bool canAssign) {
   (void)canAssign;
 
   int buflen = parser->previous.length;
-  const char* buffer = parser->previous.start;
   double value = 0.0;
 
-  if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'c' || buffer[1] == 'C'))
-      value = (double)strtol(buffer + 2, NULL, 8);  // octal
-  else if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'x' || buffer[1] == 'X'))
-      value = strtod(buffer, NULL);  // hex
-  else if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'b' || buffer[1] == 'B'))
-      value = (double)strtol(buffer + 2, NULL, 2);  // binary
+  ByteBuffer buff;
+  ByteBufferInit(&buff);
+
+  for (int i = 0; i < buflen; i++)
+  {
+      char c = *(parser->previous.start + i);
+      if (c != '_')
+          ByteBufferWrite(parser->gc, &buff, c);
+  }
+
+  if (buff.count >= 2 && buff.data[0] == '0' && (buff.data[1] == 'c' || buff.data[1] == 'C'))
+      value = (double)strtol(buff.data + 2, NULL, 8);  // octal
+  else if (buff.count >= 2 && buff.data[0] == '0' && (buff.data[1] == 'x' || buff.data[1] == 'X'))
+      value = strtod(buff.data, NULL);  // hex
+  else if (buff.count >= 2 && buff.data[0] == '0' && (buff.data[1] == 'b' || buff.data[1] == 'B'))
+      value = (double)strtol(buff.data + 2, NULL, 2);  // binary
   else
-      value = strtod(buffer, NULL);  // decimal
+      value = strtod(buff.data, NULL);  // decimal
 
   //double value = strtod(parser->previous.start, NULL);
   emitConstant(parser, NUMBER_VAL(value));
+
+  ByteBufferClear(parser->gc, &buff);
 }
 
 static void or_(Parser* parser, bool canAssign) {

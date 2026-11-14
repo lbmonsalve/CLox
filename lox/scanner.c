@@ -18,7 +18,7 @@ static bool isAlpha(char c) {
 }
 
 static bool isDigit(char c) {
-  return c >= '0' && c <= '9';
+  return (c >= '0' && c <= '9') || c == '_';
 }
 
 static bool isAtEnd(Scanner* scanner) {
