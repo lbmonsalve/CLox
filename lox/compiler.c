@@ -688,7 +688,7 @@ static void number(Parser* parser, bool canAssign) {
   (void)canAssign;
 
   int buflen = parser->previous.length;
-  char* buffer = parser->previous.start;
+  const char* buffer = parser->previous.start;
   double value = 0.0;
 
   if (buflen >= 2 && buffer[0] == '0' && (buffer[1] == 'c' || buffer[1] == 'C'))
@@ -817,7 +817,7 @@ static void string(Parser* parser, bool canAssign) {
   ByteBufferClear(parser->gc, &string);
 }
 
-static void interp(Parser* parser, bool canAssign) {
+static void interpolation(Parser* parser, bool canAssign) {
     (void)canAssign;
 
     do
@@ -953,7 +953,7 @@ static void unary(Parser* parser, bool canAssign) {
   }
 }
 
-static void condit(Parser* parser, bool canAssign) {
+static void conditional(Parser* parser, bool canAssign) {
     (void)canAssign;
 
     // Jump to the else branch if the condition is false.
@@ -1019,7 +1019,7 @@ static void decr(Parser* parser, bool canAssign) {
     emitByte(parser, OP_POP); // Doesn't leave value on the stack
 }
 
-static void compou(Parser* parser, bool canAssign) {
+static void compound(Parser* parser, bool canAssign) {
     if (!canAssign) {
         error(parser, "Invalid assignment target.");
         return;
@@ -1045,7 +1045,7 @@ static void compou(Parser* parser, bool canAssign) {
     emitByte(parser, OP_POP); // Doesn't leave value on the stack
 }
 
-static void coales(Parser* parser, bool canAssign) {
+static void coalesing(Parser* parser, bool canAssign) {
     (void)canAssign;
 
     // test nil
@@ -1091,12 +1091,12 @@ ParseRule rules[] = {
   [TOKEN_SEMICOLON]     = { NULL,     NULL,   PREC_NONE },
   [TOKEN_SLASH]         = { NULL,     binary, PREC_FACTOR },
   [TOKEN_STAR]          = { NULL,     binary, PREC_FACTOR },
-  [TOKEN_PLUS_EQUAL]    = { NULL,     compou, PREC_ASSIGNMENT },
-  [TOKEN_MINUS_EQUAL]   = { NULL,     compou, PREC_ASSIGNMENT },
-  [TOKEN_SLASH_EQUAL]   = { NULL,     compou, PREC_ASSIGNMENT },
-  [TOKEN_STAR_EQUAL]    = { NULL,     compou, PREC_ASSIGNMENT },
-  [TOKEN_QUESTION]      = { NULL,     condit, PREC_ASSIGNMENT },
-  [TOKEN_QUESTION_COLON]= { NULL,     coales, PREC_ASSIGNMENT },
+  [TOKEN_PLUS_EQUAL]    = { NULL,     compound, PREC_ASSIGNMENT },
+  [TOKEN_MINUS_EQUAL]   = { NULL,     compound, PREC_ASSIGNMENT },
+  [TOKEN_SLASH_EQUAL]   = { NULL,     compound, PREC_ASSIGNMENT },
+  [TOKEN_STAR_EQUAL]    = { NULL,     compound, PREC_ASSIGNMENT },
+  [TOKEN_QUESTION]      = { NULL,     conditional, PREC_ASSIGNMENT },
+  [TOKEN_QUESTION_COLON]= { NULL,     coalesing, PREC_ASSIGNMENT },
   [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
   [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
   [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },
@@ -1107,7 +1107,7 @@ ParseRule rules[] = {
   [TOKEN_LESS_EQUAL]    = { NULL,     binary, PREC_COMPARISON },
   [TOKEN_IDENTIFIER]    = { variable, NULL,   PREC_NONE },
   [TOKEN_STRING]        = { string,   NULL,   PREC_NONE },
-  [TOKEN_INTERPOLATION] = { interp,   NULL,   PREC_NONE },
+  [TOKEN_INTERPOLATION] = { interpolation,NULL,   PREC_NONE },
   [TOKEN_NUMBER]        = { number,   NULL,   PREC_NONE },
   [TOKEN_AND]           = { NULL,     and_,   PREC_AND },
   [TOKEN_CLASS]         = { NULL,     NULL,   PREC_NONE },

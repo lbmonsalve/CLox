@@ -1299,9 +1299,12 @@ InterpretCase interpolatedString[] = {
   { INTERPRET_OK, "hello \n", "print \"hello \%(\"\")\";" },
   { INTERPRET_OK, "hello world!\n", "print \"hello \%(\"world\")!\";" },
   //{ INTERPRET_OK, "hello world!\n", "var w=\" world\"; print \"hello \%(w)!\";" },
+  { INTERPRET_OK, "outside onetwothree\n", 
+      "var one=\"one\"; var two=\"two\"; var three=\"three\";"
+      "print \"outside \%(one + \"\%(two + \"\%(three)\")\")\";" },
 };
 
-INTERPRET(InterpolatedString, interpolatedString, 5);
+INTERPRET(InterpolatedString, interpolatedString, 6);
 
 UTEST_STATE();
 
