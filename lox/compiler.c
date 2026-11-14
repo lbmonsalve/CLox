@@ -1056,7 +1056,7 @@ static void compound(Parser* parser, bool canAssign) {
     emitByte(parser, OP_POP); // Doesn't leave value on the stack
 }
 
-static void coalesing(Parser* parser, bool canAssign) {
+static void coalescing(Parser* parser, bool canAssign) {
     (void)canAssign;
 
     // test nil
@@ -1107,7 +1107,7 @@ ParseRule rules[] = {
   [TOKEN_SLASH_EQUAL]   = { NULL,     compound, PREC_ASSIGNMENT },
   [TOKEN_STAR_EQUAL]    = { NULL,     compound, PREC_ASSIGNMENT },
   [TOKEN_QUESTION]      = { NULL,     conditional, PREC_ASSIGNMENT },
-  [TOKEN_QUESTION_COLON]= { NULL,     coalesing, PREC_ASSIGNMENT },
+  [TOKEN_QUESTION_COLON]= { NULL,     coalescing, PREC_ASSIGNMENT },
   [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
   [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
   [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },

@@ -111,6 +111,9 @@ void printValue(FILE* fout, Value value);
 void printValueShallow(FILE* fout, Value value);
 bool valuesEqual(Value a, Value b);
 
+typedef struct VM VM;
+void printValueWriteFn(VM* vm, Value value);
+
 #define EXPECT_VALEQ(x, y) \
   UTEST_SURPRESS_WARNING_BEGIN do { \
     if (!valuesEqual(x, y)) { \

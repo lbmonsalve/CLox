@@ -515,7 +515,7 @@ static bool substrIndex(
       runtimeError(vm, "%s (%g) must be a whole number.", type, num);
       return false;
     }
-    *index = num;
+    *index = (int)num;
   }
   if (*index < 0) {
     *index += length + 1;

@@ -1246,17 +1246,21 @@ InterpretCase nilContitional[] = {
 
 INTERPRET(NilContitional, nilContitional, 3);
 
-InterpretCase nilcoalesing[] = {
+InterpretCase nilCoalescing[] = {
   { INTERPRET_COMPILE_ERROR,
       "Expect expression.", "print nil ?:" },
   { INTERPRET_OK, "1\n", "print nil ?: 1;" },
   { INTERPRET_OK, "2\n", "print 2 ?: 1;" },
+  { INTERPRET_OK, "true\n", "print true ?: false;" },
+  { INTERPRET_OK, "false\n", "print false ?: true;" },
+  { INTERPRET_OK, "false\n", "print false ?: false ?: true;" },
+  { INTERPRET_OK, "true\n", "print nil ?: nil ?: true;" },
   { INTERPRET_OK, "default\n", "var c; print c?.name?:\"default\";" },
   { INTERPRET_OK, "bob\n",
     "class C{init(n){this.name=n;}} var c=C(\"bob\"); print c?.name?:\"mary\";" },
 };
 
-INTERPRET(Nilcoalesing, nilcoalesing, 5);
+INTERPRET(NilCoalescing, nilCoalescing, 9);
 
 InterpretCase escapeStrings[] = {
   { INTERPRET_COMPILE_ERROR,

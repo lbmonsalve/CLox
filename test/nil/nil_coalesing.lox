@@ -1,2 +1,6 @@
-print nil ?: 2; // expect: 2
-//print 1 ?: 2; // expect: 1
+print nil ?: 2;               // expect: 2
+print 1 ?: 2;                 // expect: 1
+print true ?: false;          // expect: true
+print false ?: true;          // expect: false
+print false ?: false ?: true; // expect: false
+print nil ?: nil ?: true;     // expect: true

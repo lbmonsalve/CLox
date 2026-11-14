@@ -48,7 +48,7 @@ typedef struct VM {
   ObjClass* stringClass;
 
   GC gc;
-};
+} VM;
 
 typedef enum {
   INTERPRET_OK,
