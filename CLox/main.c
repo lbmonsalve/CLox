@@ -36,7 +36,7 @@ static void repl(int argc, const char* argv[]) {
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(100);
 
-  printf("clox %s (8b4d07b7) type .help for more information\n", LOX_VERSION_STRING);
+  printf("clox %s (23848f4d) type .help for more information\n", LOX_VERSION_STRING);
   
   for (;;) {
     const char* prompt = ftell(src.fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";

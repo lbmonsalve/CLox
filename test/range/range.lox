@@ -1,0 +1,74 @@
+class Range {
+  init(from, to, by) {
+    this.from= from;
+	this.to= to;
+	this.by= by;
+	this.current= from;
+  }
+  
+  makeIterator() {
+	return Range(this.from, this.to, this.by);
+  }
+  
+  nextIteratorValue() {
+    if (this.from<= this.to) {
+	  if (this.current<= this.to) {
+	    var curr= this.current;
+		this.current+= this.by;
+	  
+	    return curr;
+	  }
+	} else if (this.current>= this.to) { // reverse
+	  var curr= this.current;
+	  this.current-= this.by;
+	  
+	  return curr;
+	}
+  }
+}
+
+{
+  var range= Range(1, 10, 1);
+  var itera= range.makeIterator();
+  var item;
+  while (item= itera.nextIteratorValue()) {
+    print item;
+  }
+}
+
+print "\nreverse:\n";
+
+{
+  var range= Range(3.5, 1.5, 0.2);
+  var itera= range.makeIterator();
+  var item;
+  while (item= itera.nextIteratorValue()) {
+    print item;
+  }
+}
+
+/* expected:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+reverse:
+
+3.5
+3.3
+3.1
+2.9
+2.7
+2.5
+2.3
+2.1
+1.9
+1.7
+*/

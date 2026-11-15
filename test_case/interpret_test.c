@@ -1160,9 +1160,10 @@ InterpretCase compound[] = {
   { INTERPRET_OK, "2\n1\n", "var i=2; print i-=1; print i;" },
   { INTERPRET_OK, "3\n12\n", "var i=3; print i*=4; print i;" },
   { INTERPRET_OK, "4\n2\n", "var i=4; print i/=2; print i;" },
+  { INTERPRET_OK, "3\n", "class C{} var c= C(); c.value= 1; c.value+= 2; print c.value;" },
 };
 
-INTERPRET(Compound, compound, 18);
+INTERPRET(Compound, compound, 19);
 
 InterpretCase continueBreak[] = {
   { INTERPRET_COMPILE_ERROR,

@@ -588,13 +588,29 @@ static void call(Parser* parser, bool canAssign) {
   emitBytes(parser, OP_CALL, argCount);
 }
 
+static void propertyAssignment(Parser* parser, TokenType type, uint16_t name) {
+    emitByte(parser, OP_DUP);
+    emitOpShort(parser, OP_GET_PROPERTY, name);
+    expression(parser);
+    emitByte(parser, type);
+    emitOpShort(parser, OP_SET_PROPERTY, name);
+}
+
 static void dot(Parser* parser, bool canAssign) {
   consume(parser, TOKEN_IDENTIFIER, "Expect property name after '.'.");
   uint16_t name = identifierConstant(parser, &parser->previous);
 
   if (canAssign && match(parser, TOKEN_EQUAL)) {
-    expression(parser);
-    emitOpShort(parser, OP_SET_PROPERTY, name);
+      expression(parser);
+      emitOpShort(parser, OP_SET_PROPERTY, name);
+  } else if (canAssign && match(parser, TOKEN_PLUS_EQUAL)) {
+      propertyAssignment(parser, OP_ADD, name);
+  } else if (canAssign && match(parser, TOKEN_MINUS_EQUAL)) {
+      propertyAssignment(parser, OP_SUBTRACT, name);
+  } else if (canAssign && match(parser, TOKEN_STAR_EQUAL)) {
+      propertyAssignment(parser, OP_MULTIPLY, name);
+  } else if (canAssign && match(parser, TOKEN_SLASH_EQUAL)) {
+      propertyAssignment(parser, OP_DIVIDE, name);
   } else if (match(parser, TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList(parser);
     emitOpShort(parser, OP_INVOKE, name);
@@ -745,11 +761,9 @@ static int readHexEscape(Parser* parser, int digits, const char* description, in
 {
     int value = 0;
     int currDigit = curr;
-    for (int i = 0; i < digits; i++)
-    {
+    for (int i = 0; i < digits; i++) {
         int digit = readHexDigit(parser, ++currDigit);
-        if (digit == -1)
-        {
+        if (digit == -1) {
             error(parser, "Invalid escape sequence.");
             break;
         }
@@ -767,8 +781,7 @@ static void readUnicodeEscape(Parser* parser, ByteBuffer* string, int length, in
 
     // Grow the buffer enough for the encoded result.
     int numBytes = Utf8EncodeNumBytes(value);
-    if (numBytes != 0)
-    {
+    if (numBytes != 0) {
         ByteBufferFill(parser->gc, string, 0, numBytes);
         Utf8Encode(value, string->data + string->count - numBytes);
     }
@@ -780,15 +793,12 @@ static void string(Parser* parser, bool canAssign) {
   ByteBuffer string;
   ByteBufferInit(&string);
 
-  for (int i = 1; i <= parser->previous.length - 2; i++)
-  {
+  for (int i = 1; i <= parser->previous.length - 2; i++) {
       char c = *(parser->previous.start + i);
 
-      if (c == '\\')
-      {
+      if (c == '\\') {
           char c1 = *(parser->previous.start + (++i));
-          switch (c1)
-          {
+          switch (c1) {
           case '"':  ByteBufferWrite(parser->gc, &string, '"'); break;
           case '\\': ByteBufferWrite(parser->gc, &string, '\\'); break;
           case '%':  ByteBufferWrite(parser->gc, &string, '%'); break;
@@ -812,9 +822,7 @@ static void string(Parser* parser, bool canAssign) {
               error(parser, "Invalid escape character.");
               break;
           }
-      }
-      else
-      {
+      } else {
           ByteBufferWrite(parser->gc, &string, c);
       }
   }
@@ -831,8 +839,7 @@ static void string(Parser* parser, bool canAssign) {
 static void interpolation(Parser* parser, bool canAssign) {
     (void)canAssign;
 
-    do
-    {
+    do {
         // The opening string part.
         string(parser, false);
         expression(parser);
@@ -899,8 +906,7 @@ static void emitSetVariable(Parser* parser, Token name) {
     arg = identifierConstant(parser, &name);
     if (arg <= UINT16_MAX) {
         emitOpShort(parser, OP_SET_GLOBAL, (uint16_t)arg);
-    }
-    else {
+    } else {
         error(parser, "Too many constants. 16-bit max.");
     }
 }

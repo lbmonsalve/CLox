@@ -4,3 +4,9 @@ i+=3; print i; // expect: 4
 i-=1; print i; // expect: 3
 i*=3; print i; // expect: 9
 i/=3; print i; // expect: 3
+
+var i=1;
+i+=3; print i; // expect: 4
+
+class C{} var c=C(); c.value=1; c.value+= 2;
+print c.value; // expect: 3
