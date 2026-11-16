@@ -176,6 +176,8 @@ int disassembleInstruction(FILE* ferr, Chunk* chunk, int offset) {
       return simpleInstruction(ferr, "OP_MAP_INIT", offset);
     case OP_MAP_DATA:
       return simpleInstruction(ferr, "OP_MAP_DATA", offset);
+    case OP_RANGE_INIT:
+        return simpleInstruction(ferr, "OP_RANGE_INIT", offset);
     case OP_RETURN: return simpleInstruction(ferr, "OP_RETURN", offset);
     case OP_CLASS:
       return constantInstruction(ferr, "OP_CLASS", chunk, offset);

@@ -1088,6 +1088,16 @@ static void coalescing(Parser* parser, bool canAssign) {
     patchJump(parser, exitJump);
 }
 
+static void range(Parser* parser, bool canAssign) {
+    (void)canAssign;
+
+    // Compile to.
+    parsePrecedence(parser, PREC_UNARY, false);
+    // by.
+    emitConstant(parser, NUMBER_VAL(1));
+    emitByte(parser, OP_RANGE_INIT);
+}
+
 // clang-format off
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN]    = { grouping, call,   PREC_CALL },
@@ -1099,6 +1109,7 @@ ParseRule rules[] = {
   [TOKEN_COLON]         = { NULL,     NULL,   PREC_NONE },
   [TOKEN_COMMA]         = { NULL,     NULL,   PREC_NONE },
   [TOKEN_DOT]           = { NULL,     dot,    PREC_CALL },
+  [TOKEN_DOT_DOT]       = { NULL,     range,  PREC_CALL },
   [TOKEN_QUESTION_DOT]  = { NULL,     qdot,   PREC_CALL },
   [TOKEN_MINUS]         = { unary,    binary, PREC_TERM },
   [TOKEN_MINUS_MINUS]   = { unary,    decr,   PREC_UNARY },

@@ -54,6 +54,7 @@ typedef enum {
   OP_LIST_DATA,
   OP_MAP_INIT,
   OP_MAP_DATA,
+  OP_RANGE_INIT,
   OP_RETURN,
   OP_CLASS,
   OP_INHERIT,

@@ -1,3 +1,38 @@
+//var range= 3.5..1.5; print range;
+
+{
+  var range= 2..5;
+  var itera= range.makeIterator();
+  var item;
+  while (item= itera.nextIteratorValue()) {
+    print item;
+  }
+}
+print "reverse:";
+{
+  var range= (3.5..2.4).by(0.2);
+  var itera= range.makeIterator();
+  var item;
+  while (item= itera.nextIteratorValue()) {
+    print item;
+  }
+}
+/* expected:
+2
+3
+4
+5
+reverse:
+3.5
+3.3
+3.1
+2.9
+2.7
+2.5
+*/
+
+
+/*
 class Range {
   init(from, to, by) {
     this.from= from;
@@ -36,7 +71,7 @@ class Range {
   }
 }
 
-print "\nreverse:\n";
+print "reverse:";
 
 {
   var range= Range(3.5, 1.5, 0.2);
@@ -58,9 +93,7 @@ print "\nreverse:\n";
 8
 9
 10
-
 reverse:
-
 3.5
 3.3
 3.1
@@ -71,4 +104,5 @@ reverse:
 2.1
 1.9
 1.7
+*/
 */

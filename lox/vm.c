@@ -299,6 +299,7 @@ static void vmMarkRoots(GC* gc, void* arg) {
   markObject(gc, (Obj*)vm->listClass);
   markObject(gc, (Obj*)vm->mapClass);
   markObject(gc, (Obj*)vm->stringClass);
+  markObject(gc, (Obj*)vm->rangeClass);
 }
 
 static void defineNativeMethod(
@@ -564,6 +565,93 @@ static void initStringClass(VM* vm) {
   defineNativeMethod(vm, vm->stringClass, "substr", stringSubstr);
 }
 
+static bool rangeFrom(VM* vm, int argCount, Value* args) {
+    if (!checkArity(vm, 0, argCount)) {
+        return false;
+    }
+    ObjRange* range = AS_RANGE(args[-1]);
+    push(vm, NUMBER_VAL((double)range->from));
+    return true;
+}
+
+static bool rangeTo(VM* vm, int argCount, Value* args) {
+    if (!checkArity(vm, 0, argCount)) {
+        return false;
+    }
+    ObjRange* range = AS_RANGE(args[-1]);
+    push(vm, NUMBER_VAL((double)range->to));
+    return true;
+}
+
+static bool rangeBy(VM* vm, int argCount, Value* args) {
+    if (!checkArity(vm, 1, argCount)) {
+        return false;
+    }
+
+    ObjRange* range = AS_RANGE(args[-1]);
+    range->by = (float)AS_NUMBER(args[0]);
+    push(vm, OBJ_VAL(range));
+    return true;
+}
+
+static bool rangeMakeIterator(VM* vm, int argCount, Value* args) {
+    if (!checkArity(vm, 0, argCount)) {
+        return false;
+    }
+
+    ObjRange* oriRange = AS_RANGE(args[-1]);
+    ObjRange* range = newRange(&vm->gc);
+    range->by = oriRange->by;
+    range->to = oriRange->to;
+    range->from = oriRange->from;
+    range->current = oriRange->from;
+
+    push(vm, OBJ_VAL(range));
+    return true;
+}
+
+static bool rangeNextIteratorValue(VM* vm, int argCount, Value* args) {
+    if (!checkArity(vm, 0, argCount)) {
+        return false;
+    }
+
+    ObjRange* range = AS_RANGE(args[-1]);
+    if (range->from <= range->to) {
+        if (range->current <= range->to) {
+            float curr = range->current;
+            range->current += range->by;
+
+            push(vm, NUMBER_VAL((double)curr));
+        } else {
+            push(vm, NIL_VAL);
+        }
+    } else if (range->current >= range->to) {
+        float curr = range->current;
+        range->current -= range->by;
+
+        push(vm, NUMBER_VAL((double)curr));
+    } else {
+        push(vm, NIL_VAL);
+    }
+
+    return true;
+}
+
+static void initRangeClass(VM* vm) {
+    const char rangeStr[] = "Range";
+    ObjString* rangeClassName = copyString(
+        &vm->gc, &vm->strings, rangeStr, sizeof(rangeStr) - 1);
+    pushTemp(&vm->gc, OBJ_VAL(rangeClassName));
+    vm->rangeClass = newClass(&vm->gc, rangeClassName);
+    popTemp(&vm->gc);
+
+    defineNativeMethod(vm, vm->rangeClass, "from", rangeFrom);
+    defineNativeMethod(vm, vm->rangeClass, "to", rangeTo);
+    defineNativeMethod(vm, vm->rangeClass, "by", rangeBy);
+    defineNativeMethod(vm, vm->rangeClass, "makeIterator", rangeMakeIterator);
+    defineNativeMethod(vm, vm->rangeClass, "nextIteratorValue", rangeNextIteratorValue);
+}
+
 void initVM(VM* vm, FILE* fout, FILE* ferr) {
   vm->fout = fout;
   vm->ferr = ferr;
@@ -587,11 +675,13 @@ void initVM(VM* vm, FILE* fout, FILE* ferr) {
   vm->listClass = NULL;
   vm->mapClass = NULL;
   vm->stringClass = NULL;
+  vm->rangeClass = NULL;
 
   vm->initString = copyString(&vm->gc, &vm->strings, "init", 4);
   initListClass(vm);
   initMapClass(vm);
   initStringClass(vm);
+  initRangeClass(vm);
 
   defineNative(vm, "argc", argcNative);
   defineNative(vm, "argv", argvNative);
@@ -599,11 +689,14 @@ void initVM(VM* vm, FILE* fout, FILE* ferr) {
   defineNative(vm, "chr", chrNative);
   defineNative(vm, "clock", clockNative);
   defineNative(vm, "eprint", eprintNative);
-  defineNative(vm, "exit", exitNative);
+  //defineNative(vm, "exit", exitNative);
   defineNative(vm, "floor", floorNative);
   defineNative(vm, "round", roundNative);
   defineNative(vm, "str", strNative);
   defineNative(vm, "type", typeNative);
+
+  // Sets seed value of the random number generator based on the time the vm was initialized
+  srand((unsigned int)time(0));
 }
 
 void freeVM(VM* vm) {
@@ -734,6 +827,8 @@ static bool invoke(VM* vm, ObjString* name, int argCount) {
     klass = vm->mapClass;
   } else if (IS_STRING(receiver)) {
     klass = vm->stringClass;
+  } else if (IS_RANGE(receiver)) {
+    klass = vm->rangeClass;
   } else if (IS_INSTANCE(receiver)) {
     ObjInstance* instance = AS_INSTANCE(receiver);
     Value value;
@@ -1076,6 +1171,8 @@ static InterpretResult run(VM* vm) {
           klass = vm->mapClass;
         } else if (IS_STRING(receiver)) {
           klass = vm->stringClass;
+        } else if (IS_RANGE(receiver)) {
+          klass = vm->rangeClass;
         } else if (IS_INSTANCE(receiver)) {
           ObjInstance* instance = AS_INSTANCE(peek(vm, 0));
           Value value;
@@ -1309,7 +1406,7 @@ static InterpretResult run(VM* vm) {
         push(vm, NUMBER_VAL(-AS_NUMBER(pop(vm))));
         NEXT;
       }
-      CASE(OP_PRINT) {
+      CASE(OP_PRINT) { // TODO: chg to one fn
         Value value = pop(vm);
         if (vm->writeFn != NULL) {
             printValueWriteFn(vm, value);
@@ -1426,6 +1523,15 @@ static InterpretResult run(VM* vm) {
         pop(vm); // Value.
         pop(vm); // Key.
         NEXT;
+      }
+      CASE(OP_RANGE_INIT) {
+          ObjRange* range = newRange(&vm->gc);
+          range->by = (float)AS_NUMBER(pop(vm));
+          range->to = (float)AS_NUMBER(pop(vm));
+          range->from = (float)AS_NUMBER(pop(vm));
+
+          push(vm, OBJ_VAL(range));
+          NEXT;
       }
       CASE(OP_RETURN) {
         Value result = pop(vm);

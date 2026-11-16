@@ -46,6 +46,7 @@ typedef struct VM {
   ObjClass* listClass;
   ObjClass* mapClass;
   ObjClass* stringClass;
+  ObjClass* rangeClass;
 
   GC gc;
 } VM;

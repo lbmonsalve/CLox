@@ -88,6 +88,15 @@ ObjMap* newMap(GC* gc) {
   return map;
 }
 
+ObjRange* newRange(GC* gc) {
+    ObjRange* range = ALLOCATE_OBJ(gc, ObjRange, OBJ_RANGE);
+    range->from = 0;
+    range->to = 0;
+    range->by = 0;
+    range->current = 0;
+    return range;
+}
+
 ObjNative* newNative(GC* gc, NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(gc, ObjNative, OBJ_NATIVE);
   native->function = function;
@@ -158,7 +167,7 @@ static void printFunction(FILE* fout, ObjFunction* function) {
   fprintf(fout, "<fn %s>", function->name->chars);
 }
 
-void printObject(FILE* fout, Value value) {
+void printObject(FILE* fout, Value value) { // remember change printObjectWriteFn too
   switch (OBJ_TYPE(value)) {
     case OBJ_BOUND_METHOD: {
       printObject(fout, OBJ_VAL(AS_BOUND_METHOD(value)->method));
@@ -212,6 +221,12 @@ void printObject(FILE* fout, Value value) {
     case OBJ_NATIVE: fprintf(fout, "<native fn>"); break;
     case OBJ_STRING: fprintf(fout, "%s", AS_CSTRING(value)); break;
     case OBJ_UPVALUE: fprintf(fout, "upvalue"); break;
+    case OBJ_RANGE: {
+        ObjRange* range = AS_RANGE(value);
+        fprintf(
+            fout, "Range(%.2f, %.2f, %.2f)", range->from, range->to, range->by);
+        break;
+    }
   }
 }
 
@@ -220,84 +235,106 @@ static void printFunctionWriteFn(VM* vm, ObjFunction* function) {
         vm->writeFn(vm, "<script>");
         return;
     }
-    size_t sz = snprintf(NULL, 0, "<fn %s>", function->name->chars);
+    const char* frmt = "<fn %s>";
+    size_t sz = snprintf(NULL, 0, frmt, function->name->chars);
     char* buf = malloc(sz + 1);
-    snprintf(buf, sz + 1, "<fn %s>", function->name->chars);
+    snprintf(buf, sz + 1, frmt, function->name->chars);
     vm->writeFn(vm, buf);
     free(buf);
 }
 
-void printObjectWriteFn(VM* vm, Value value) {
+void printObjectWriteFn(VM* vm, Value value) { // remember change printObject too
     switch (OBJ_TYPE(value)) {
     case OBJ_BOUND_METHOD: {
         printObjectWriteFn(vm, OBJ_VAL(AS_BOUND_METHOD(value)->method));
         break;
     }
     case OBJ_CLASS: {
-        //fprintf(fout, "%s", AS_CLASS(value)->name->chars);
-        size_t sz = snprintf(NULL, 0, "%s", AS_CLASS(value)->name->chars);
+        //fprintf(vm->fout, "%s", AS_CLASS(value)->name->chars);
+        const char* frmt = "%s";
+        size_t sz = snprintf(NULL, 0, frmt, AS_CLASS(value)->name->chars);
         char* buf = malloc(sz + 1);
-        snprintf(buf, sz + 1, "%s", AS_CLASS(value)->name->chars);
+        snprintf(buf, sz + 1, frmt, AS_CLASS(value)->name->chars);
         vm->writeFn(vm, buf);
         free(buf);
 
         break;
     }
     case OBJ_CLOSURE:
-        //printFunction(fout, AS_CLOSURE(value)->function);
+        printFunction(vm->fout, AS_CLOSURE(value)->function);
         printFunctionWriteFn(vm, AS_CLOSURE(value)->function);
         break;
     case OBJ_FUNCTION: 
-        //printFunction(fout, AS_FUNCTION(value)); 
+        printFunction(vm->fout, AS_FUNCTION(value));
         printFunctionWriteFn(vm, AS_FUNCTION(value));
         break;
     case OBJ_INSTANCE: {
-        //fprintf(fout, "%s instance", AS_INSTANCE(value)->klass->name->chars);
-        size_t sz = snprintf(NULL, 0, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        //fprintf(vm->fout, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        const char* frmt = "%s instance";
+        size_t sz = snprintf(NULL, 0, frmt, AS_INSTANCE(value)->klass->name->chars);
         char* buf = malloc(sz + 1);
-        snprintf(buf, sz + 1, "%s instance", AS_INSTANCE(value)->klass->name->chars);
+        snprintf(buf, sz + 1, frmt, AS_INSTANCE(value)->klass->name->chars);
         vm->writeFn(vm, buf);
         free(buf);
 
         break;
     }
     case OBJ_LIST: {
-        //ObjList* list = AS_LIST(value);
-        //fputc('[', fout);
-        //if (list->elements.count > 0) {
-        //    printValueShallow(fout, list->elements.values[0]);
-        //}
-        //for (int i = 1; i < list->elements.count; ++i) {
-        //    fputs(", ", fout);
-        //    printValueShallow(fout, list->elements.values[i]);
-        //}
-        //fputc(']', fout);
+        ObjList* list = AS_LIST(value);
+        vm->writeFn(vm, '[');
+        if (list->elements.count > 0) {
+            printObjectWriteFn(vm, list->elements.values[0]);
+        }
+        for (int i = 1; i < list->elements.count; ++i) {
+            vm->writeFn(vm, ", ");
+            printObjectWriteFn(vm, list->elements.values[i]);
+        }
+        vm->writeFn(vm, ']');
         break;
     }
     case OBJ_MAP: {
-        //ObjMap* map = AS_MAP(value);
-        //fputc('{', fout);
-        //bool first = true;
-        //for (int i = 0; i < map->table.capacity; ++i) {
-        //    Entry* entry = &map->table.entries[i];
-        //    if (entry->key == NULL) {
-        //        continue;
-        //    }
-        //    if (first) {
-        //        first = false;
-        //    }
-        //    else {
-        //        fputs(", ", fout);
-        //    }
-        //    fprintf(fout, "%.*s", entry->key->length, entry->key->chars);
-        //    fputs(": ", fout);
-        //    printValueShallow(fout, entry->value);
-        //}
-        //fputc('}', fout);
+        ObjMap* map = AS_MAP(value);
+        vm->writeFn(vm, '[');
+        bool first = true;
+        for (int i = 0; i < map->table.capacity; ++i) {
+            Entry* entry = &map->table.entries[i];
+            if (entry->key == NULL) {
+                continue;
+            }
+            if (first) {
+                first = false;
+            }
+            else {
+                vm->writeFn(vm, ", ");
+            }
+            //fprintf(vm->fout, "%.*s", entry->key->length, entry->key->chars);
+            const char* frmt = "%.*s";
+            size_t sz = snprintf(NULL, 0, frmt, entry->key->length, entry->key->chars);
+            char* buf = malloc(sz + 1);
+            snprintf(buf, sz + 1, frmt, entry->key->length, entry->key->chars);
+            vm->writeFn(vm, buf);
+            free(buf);
+
+            vm->writeFn(vm, ": ");
+            printObjectWriteFn(vm, entry->value);
+        }
+        vm->writeFn(vm, ']');
         break;
     }
     case OBJ_NATIVE: vm->writeFn(vm, "<native fn>"); break;
     case OBJ_STRING: vm->writeFn(vm, AS_CSTRING(value)); break;
     case OBJ_UPVALUE: vm->writeFn(vm, "upvalue"); break;
+    case OBJ_RANGE: {
+        //vm->writeFn(vm, "Range"); break;
+        ObjRange* range = AS_RANGE(value);
+        const char* frmt= "Range(%.2f, %.2f, %.2f)";
+        size_t sz = snprintf(NULL, 0, frmt, range->from, range->to, range->by);
+        char* buf = malloc(sz + 1);
+        snprintf(buf, sz + 1, frmt, range->from, range->to, range->by);
+        vm->writeFn(vm, buf);
+        free(buf);
+
+        break;
+    }
     }
 }

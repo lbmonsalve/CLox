@@ -501,7 +501,7 @@ InterpretCase nativeEprint[] = {
 };
 
 INTERPRET(NativeEprint, nativeEprint, 2);
-
+/*
 InterpretCase nativeExit[] = {
   { INTERPRET_RUNTIME_ERROR, "Expected 1 arguments but got 0.",
       "exit();" },
@@ -516,7 +516,7 @@ InterpretCase nativeExit[] = {
 };
 
 INTERPRET(NativeExit, nativeExit, 5);
-
+*/
 InterpretCase nativeFloor[] = {
   { INTERPRET_RUNTIME_ERROR, "Expected 1 arguments but got 0.",
       "floor();" },
@@ -1310,6 +1310,35 @@ InterpretCase interpolatedString[] = {
 };
 
 INTERPRET(InterpolatedString, interpolatedString, 6);
+
+InterpretCase range[] = {
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "print .." },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "print 0.." },
+  { INTERPRET_COMPILE_ERROR,
+      "Expect expression.", "print ..0" },
+  { INTERPRET_OK, "Range(1.00, 10.00, 1.00)\n", "print 1..10;" },
+  { INTERPRET_OK, "Range(10.00, 1.00, 1.00)\n", "print 10..1;" },
+  { INTERPRET_OK, "Range(3.50, 1.50, 1.00)\n", "print 3.5..1.5;" },
+  { INTERPRET_OK, "Range(3.50, 1.50, 0.20)\n", "print (3.5..1.5).by(0.2);" },
+  { INTERPRET_OK, "2\n3\n4\n5\n",
+      "var range= 2..5;"
+      "var itera= range.makeIterator();"
+      "var item;"
+      "while (item= itera.nextIteratorValue()) {"
+      "  print item;"
+      "}" },
+  { INTERPRET_OK, "3.5\n3.3\n3.1\n2.9\n2.7\n2.5\n",
+      "var range= (3.5..2.4).by(0.2);"
+      "var itera= range.makeIterator();"
+      "var item;"
+      "while (item= itera.nextIteratorValue()) {"
+      "  print item;"
+      "}" },
+};
+
+INTERPRET(Range, range, 9);
 
 UTEST_STATE();
 

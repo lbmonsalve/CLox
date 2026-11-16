@@ -375,7 +375,13 @@ Token scanToken(Scanner* scanner) {
     case ';': return makeToken(scanner, TOKEN_SEMICOLON);
     case ':': return makeToken(scanner, TOKEN_COLON);
     case ',': return makeToken(scanner, TOKEN_COMMA);
-    case '.': return makeToken(scanner, TOKEN_DOT);
+    case '.': 
+        if (match(scanner, '.'))
+            return makeToken(scanner, TOKEN_DOT_DOT);
+        else if (match(scanner, '<'))
+            return makeToken(scanner, TOKEN_DOT_LESS);
+        else
+            return makeToken(scanner, TOKEN_DOT);
     case '-': 
         if (match(scanner, '-'))
             return makeToken(scanner, TOKEN_MINUS_MINUS);

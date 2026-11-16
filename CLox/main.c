@@ -12,10 +12,16 @@
 #include "memory.h"
 #include "vm.h"
 
-#define LOX_VERSION_STRING "0.0.261114"
+#define LOX_VERSION_STRING "0.0.261117"
 
-#define STR(x) #x
-#define XSTR(x) STR(x)
+// Stringification
+/// Convert a token to a string literal, expanding macros first.
+///
+/// Example:
+///   #define VERSION 42
+///   const char * s = CLX_STRINGIFY(VERSION); // "42"
+#define STRINGIFY_IMP(x) #x
+#define STRINGIFY(x) STRINGIFY_IMP(x)
 
 static void printVersion(FILE* fout) {
   fputs("clox " LOX_VERSION_STRING "\n", fout);
@@ -121,7 +127,10 @@ static void runFile(const char* path, int argc, const char* argv[]) {
   initVM(&vm, stdout, stderr);
   argsVM(&vm, argc, argv);
   char* source = readFile(path);
+  
   result = interpret(&vm, source);
+  
+  free(source);
   freeVM(&vm);
 
   if (result == INTERPRET_COMPILE_ERROR) {
@@ -130,8 +139,6 @@ static void runFile(const char* path, int argc, const char* argv[]) {
   if (result == INTERPRET_RUNTIME_ERROR) {
     exit(70);
   }
-
-  free(source);
 }
 
 static void printHelp(FILE* fout) {
