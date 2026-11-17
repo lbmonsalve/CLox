@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "memory.h"
 
+DEFINE_BUFFER(Byte, uint8_t);
+
 // From: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
 int PowerOf2Ceil(int n)
 {
@@ -14,43 +16,6 @@ int PowerOf2Ceil(int n)
 
     return n;
 }
-
-void ByteBufferInit(ByteBuffer* buffer)
-{
-    buffer->data = NULL;
-    buffer->capacity = 0;
-    buffer->count = 0;
-}
-
-void ByteBufferClear(GC* gc, ByteBuffer* buffer)
-{
-    reallocate(gc, buffer->data, 0, 0);
-    ByteBufferInit(buffer);
-}
-
-void ByteBufferFill(GC* gc, ByteBuffer* buffer, uint8_t data,
-    int count)
-{
-    if (buffer->capacity < buffer->count + count)
-    {
-        int capacity = PowerOf2Ceil(buffer->count + count);
-        buffer->data = (uint8_t*)reallocate(gc, buffer->data,
-            buffer->capacity * sizeof(uint8_t), capacity * sizeof(uint8_t));
-        buffer->capacity = capacity;
-    }
-
-    for (int i = 0; i < count; i++)
-    {
-        buffer->data[buffer->count++] = data;
-    }
-}
-
-void ByteBufferWrite(GC* gc, ByteBuffer* buffer, uint8_t data)
-{
-    ByteBufferFill(gc, buffer, data, 1);
-}
-
-//
 
 int Utf8EncodeNumBytes(int value)
 {
