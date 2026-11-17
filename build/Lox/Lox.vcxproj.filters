@@ -45,10 +45,10 @@
     <ClCompile Include="..\..\lox\vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\lox\membufw.c">
+    <ClCompile Include="..\..\lox\utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\lox\utils.c">
+    <ClCompile Include="..\..\lox\membuf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -87,9 +87,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\lox\vm.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\lox\membufw.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\lox\utils.h">

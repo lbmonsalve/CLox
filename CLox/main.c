@@ -8,7 +8,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
-#include "membufw.h"
+#include "membuf.h"
 #include "memory.h"
 #include "vm.h"
 
@@ -42,7 +42,7 @@ static void repl(int argc, const char* argv[]) {
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(100);
 
-  printf("clox %s (23848f4d) type .help for more information\n", LOX_VERSION_STRING);
+  printf("clox %s (ac565776) type .help for more information\n", LOX_VERSION_STRING);
   
   for (;;) {
     const char* prompt = ftell(src.fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";

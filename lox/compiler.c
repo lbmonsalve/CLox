@@ -681,16 +681,6 @@ static void map(Parser* parser, bool canAssign) {
     // The key.
     expression(parser);
     
-    //if (match(parser, TOKEN_LEFT_SQUARE)) {
-    //  expression(parser);
-    //  consume(
-    //      parser, TOKEN_RIGHT_SQUARE, "Expect ']' after expression.");
-    //} else {
-    //  consume(parser, TOKEN_IDENTIFIER, "Expect identifier or '['.");
-    //  uint16_t constant = identifierConstant(parser, &parser->previous);
-    //  emitOpShort(parser, OP_CONSTANT, constant);
-    //}
-    
     consume(parser, TOKEN_COLON, "Expect ':' after map key.");
 
     // The value.
@@ -797,8 +787,7 @@ static void string(Parser* parser, bool canAssign) {
       char c = *(parser->previous.start + i);
 
       if (c == '\\') {
-          char c1 = *(parser->previous.start + (++i));
-          switch (c1) {
+          switch (*(parser->previous.start + (++i))) {
           case '"':  ByteBufferWrite(parser->gc, &string, '"'); break;
           case '\\': ByteBufferWrite(parser->gc, &string, '\\'); break;
           case '%':  ByteBufferWrite(parser->gc, &string, '%'); break;

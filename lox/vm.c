@@ -13,7 +13,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
-#include "membufw.h"
+#include "membuf.h"
 #include "memory.h"
 #include "obj_native.h"
 #include "object.h"

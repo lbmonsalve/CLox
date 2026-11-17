@@ -3,7 +3,7 @@
 
 #include "utest.h"
 
-#include "membufw.h"
+#include "membuf.h"
 #include "memory.h"
 #include "vm.h"
 

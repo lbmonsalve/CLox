@@ -23,7 +23,7 @@
     <ClCompile Include="..\..\lox\compiler.c" />
     <ClCompile Include="..\..\lox\debug.c" />
     <ClCompile Include="..\..\lox\gc.c" />
-    <ClCompile Include="..\..\lox\membufw.c" />
+    <ClCompile Include="..\..\lox\membuf.c" />
     <ClCompile Include="..\..\lox\memory.c" />
     <ClCompile Include="..\..\lox\object.c" />
     <ClCompile Include="..\..\lox\scanner.c" />
@@ -38,7 +38,6 @@
     <ClInclude Include="..\..\lox\compiler.h" />
     <ClInclude Include="..\..\lox\debug.h" />
     <ClInclude Include="..\..\lox\gc.h" />
-    <ClInclude Include="..\..\lox\membufw.h" />
     <ClInclude Include="..\..\lox\memory.h" />
     <ClInclude Include="..\..\lox\object.h" />
     <ClInclude Include="..\..\lox\obj_native.h" />

@@ -8,7 +8,7 @@
 #include "debug.h"
 #include "gc.h"
 #include "list.h"
-#include "membufw.h"
+#include "membuf.h"
 #include "memory.h"
 
 #define ufx utest_fixture
@@ -214,11 +214,9 @@ SourceToDump unary[] = {
   { true, "--1;",
       "== <script> ==\n"
       "0000    1 OP_CONSTANT         0 '1'\n"
-      "0003    | OP_NEGATE\n"
-      "0004    | OP_NEGATE\n"
-      "0005    | OP_POP\n"
-      "0006    | OP_NIL\n"
-      "0007    | OP_RETURN\n" },
+      "0003    | OP_POP\n"
+      "0004    | OP_NIL\n"
+      "0005    | OP_RETURN\n" },
   { true, "!false;",
       "== <script> ==\n"
       "0000    1 OP_FALSE\n"

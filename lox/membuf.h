@@ -1,10 +1,14 @@
 #pragma once
-#ifndef membufw_h
-#define membufw_h
+#ifndef membuf_h
+#define membuf_h
 
 #include <stdio.h>
 
-#define MAX_MEM_BUFFER 16384
+#ifdef _WIN32
+#ifndef MAX_MEM_BUFFER
+    #define MAX_MEM_BUFFER 4096 //16384
+#endif
+#endif
 
 // FILE* stream memory buffer.
 typedef struct {
