@@ -243,6 +243,7 @@ static bool typeNative(VM* vm, int argCount, Value* args) {
       case OBJ_NATIVE: t = "native function"; break;
       case OBJ_STRING: t = "string"; break;
       case OBJ_UPVALUE: t = "upvalue"; break;
+      case OBJ_RANGE: t = "range"; break;
     }
   } else if (IS_BOOL(args[0])) {
     t = "boolean";

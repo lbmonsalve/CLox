@@ -12,7 +12,7 @@
 #include "memory.h"
 #include "vm.h"
 
-#define LOX_VERSION_STRING "0.0.261117"
+#define LOX_VERSION_STRING "0.0.261119"
 
 // Stringification
 /// Convert a token to a string literal, expanding macros first.
@@ -42,7 +42,7 @@ static void repl(int argc, const char* argv[]) {
   linenoiseSetMultiLine(1);
   linenoiseHistorySetMaxLen(100);
 
-  printf("clox %s (ac565776) type .help for more information\n", LOX_VERSION_STRING);
+  printf("clox %s (934c98bf) type .help for more information\n", LOX_VERSION_STRING);
   
   for (;;) {
     const char* prompt = ftell(src.fptr) > inputStart ? "" : "\x1b[1;32mlox\x1b[0m> ";

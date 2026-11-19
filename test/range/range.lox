@@ -1,9 +1,9 @@
 //var range= 3.5..1.5; print range;
 
 {
+  var item;
   var range= 2..5;
   var itera= range.makeIterator();
-  var item;
   while (item= itera.nextIteratorValue()) {
     print item;
   }

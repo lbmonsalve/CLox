@@ -417,11 +417,11 @@ static int resolveUpvalue(
   return -1;
 }
 
-static void addLocal(Parser* parser, Token name) {
+static int addLocal(Parser* parser, Token name) {
   // GCOV_EXCL_START
   if (parser->currentCompiler->localCount == UINT8_COUNT) {
     error(parser, "Too many local variables in function.");
-    return;
+    return 0;
   }
   // GCOV_EXCL_STOP
 
@@ -430,6 +430,8 @@ static void addLocal(Parser* parser, Token name) {
   local->name = name;
   local->depth = -1;
   local->isCaptured = false;
+
+  return parser->currentCompiler->localCount- 1;
 }
 
 static void declareVariable(Parser* parser) {
@@ -1133,6 +1135,7 @@ ParseRule rules[] = {
   [TOKEN_FOR]           = { NULL,     NULL,   PREC_NONE },
   [TOKEN_FUN]           = { lambda,   NULL,   PREC_NONE },
   [TOKEN_IF]            = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_IN]            = { range,    NULL,   PREC_NONE },
   [TOKEN_NIL]           = { literal,  NULL,   PREC_NONE },
   [TOKEN_OR]            = { NULL,     or_,    PREC_OR },
   [TOKEN_PRINT]         = { NULL,     NULL,   PREC_NONE },
@@ -1323,6 +1326,79 @@ static void expressionStatement(Parser* parser) {
   emitByte(parser, OP_POP);
 }
 
+static void forinStatement(Parser* parser) {
+    // remove previous OP
+    Chunk* currChunk = currentChunk(parser);
+    if (currChunk->code[currChunk->count - 3] == OP_GET_GLOBAL) 
+        currentChunk(parser)->count -= 3; 
+    else if (currChunk->code[currChunk->count - 2] == OP_GET_LOCAL || 
+             currChunk->code[currChunk->count - 2] == OP_GET_UPVALUE) 
+        currentChunk(parser)->count -= 2;
+
+    // Remember the name of the loop variable.
+    Token item = parser->previous;
+
+    consume(parser, TOKEN_IN, "Expect 'in' after expression.");
+
+    // Evaluate the sequence expression and store it in a hidden local variable.
+    // The space in the variable name ensures it won't collide with a user-defined
+    // variable.
+    expression(parser);
+
+    // TODO:
+    // Verify that there is space to hidden local variables.
+    // Note that we expect only two addLocal calls next to each other in the
+    // following code.
+
+    Token seq_ = syntheticToken("seq ");
+    int seqSlot = addLocal(parser, seq_);
+
+    Token ite_ = syntheticToken("ite ");
+    int iteSlot = addLocal(parser, ite_);
+
+    consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    // Advance the iterator by calling the ".makeIterator" method on the sequence.
+    emitBytes(parser, OP_GET_LOCAL, seqSlot);
+
+    // Update and test the iterator.
+    Token make = syntheticToken("makeIterator");
+    uint16_t makeIterator = identifierConstant(parser, &make);
+    emitOpShort(parser, OP_INVOKE, makeIterator);
+    emitByte(parser, 0); // args
+
+    int loopStart = currentChunk(parser)->count;
+    beginControlContext(parser, loopStart, false);
+
+    // Get the current value in the sequence by calling ".nextIteratorValue".
+    emitBytes(parser, OP_GET_LOCAL, iteSlot);
+
+    Token next = syntheticToken("nextIteratorValue");
+    uint16_t nextIteratorValue = identifierConstant(parser, &next);
+    emitOpShort(parser, OP_INVOKE, nextIteratorValue);
+    emitByte(parser, 0); // args
+
+    // Bind the loop variable in its own scope. This ensures we get a fresh
+    // variable each iteration so that closures for it don't all see the same one.
+    beginScope(parser);
+
+    int itemSlot= addLocal(parser, item);
+    parser->currentCompiler->locals[itemSlot].depth = 0; // make initialized
+    emitBytes(parser, OP_SET_LOCAL, itemSlot);
+
+    int exitJump = emitJump(parser, OP_PJMP_IF_FALSE);
+
+    statement(parser);
+
+    // Loop variable.
+    endScope(parser);
+
+    emitLoop(parser, loopStart);
+    patchJump(parser, exitJump);
+
+    endControlContext(parser);
+}
+
 static void forStatement(Parser* parser) {
   beginScope(parser);
   consume(parser, TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
@@ -1332,7 +1408,20 @@ static void forStatement(Parser* parser) {
   } else if (match(parser, TOKEN_VAR)) {
     varDeclaration(parser);
   } else {
-    expressionStatement(parser);
+    expression(parser);
+
+    if (check(parser, TOKEN_SEMICOLON)) {
+        consume(parser, TOKEN_SEMICOLON, "Expect ';' after expression.");
+        emitByte(parser, OP_POP);
+    } else { // try for-in
+        if (check(parser, TOKEN_IN)) {
+            forinStatement(parser);
+            endScope(parser);
+            return;
+        } else {
+            error(parser, "Expect ';' after expression.");
+        }
+    }
   }
 
   int loopStart = currentChunk(parser)->count;

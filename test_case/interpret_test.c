@@ -1340,6 +1340,20 @@ InterpretCase range[] = {
 
 INTERPRET(Range, range, 9);
 
+InterpretCase forinStmt[] = {
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "for (i in )" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "for (i in 1)" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "for (i in s)" },
+  { INTERPRET_COMPILE_ERROR, "Expect expression.", "for (i in 1..5)" },
+  { INTERPRET_OK, "1\n1\n1\n", "for (i in 1..3) print 1;" },
+  { INTERPRET_OK, "1\n2\n3\n", "for (i in 1..3) print i;" },
+  { INTERPRET_OK, "3\n2\n1\n", "for (i in 3..1) print i;" },
+  { INTERPRET_OK, "1.5\n2.5\n3.5\n", "var i; for (i in 1.5..3.5) print i;" },
+  { INTERPRET_OK, "10\n8\n6\n4\n2\n", "var s= (10..1).by(2); for (i in s) print i;" },
+};
+
+INTERPRET(ForinStmt, forinStmt, 9);
+
 UTEST_STATE();
 
 int main(int argc, const char* argv[]) {
